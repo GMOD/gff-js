@@ -47,6 +47,8 @@
     "testEnvironment": "node"
   },
   "keywords": [
+    "bionode",
+    "biojs",
     "gff3",
     "gff",
     "genomics"
