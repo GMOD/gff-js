@@ -82,13 +82,14 @@ export function parseAttributes(attrString) {
       const nv = a.split('=', 2)
       if (!(nv[1] && nv[1].length)) return
 
-      let arec = attrs[nv[0]]
+      nv[0] = nv[0].trim()
+      let arec = attrs[nv[0].trim()]
       if (!arec) {
         arec = []
         attrs[nv[0]] = arec
       }
 
-      arec.push(...nv[1].split(',').map(unescape))
+      arec.push(...nv[1].split(',').map(s => s.trim()).map(unescape))
     })
   return attrs
 }

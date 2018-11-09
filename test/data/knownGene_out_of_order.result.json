@@ -75,8 +75,7 @@
                 "A00469"
               ],
               "Note": [
-                "crazy multi-parent out-of-order thing",
-                " also including a Derives_from"
+                "crazy multi-parent out-of-order thing, also including a Derives_from"
               ]
             },
             "child_features": [],
@@ -216,8 +215,7 @@
                 "A00469"
               ],
               "Note": [
-                "crazy multi-parent thing",
-                " but this time coming after its parents"
+                "crazy multi-parent thing, but this time coming after its parents"
               ]
             },
             "child_features": [],
@@ -245,8 +243,7 @@
                 "A00469"
               ],
               "Note": [
-                "crazy multi-parent out-of-order thing",
-                " also including a Derives_from"
+                "crazy multi-parent out-of-order thing, also including a Derives_from"
               ]
             },
             "child_features": [],
@@ -272,8 +269,7 @@
                 "A00469"
               ],
               "Note": [
-                "crazy multi-parent thing",
-                " but this time coming after its parents"
+                "crazy multi-parent thing, but this time coming after its parents"
               ]
             },
             "child_features": [],
@@ -343,8 +339,7 @@
                 "A00469"
               ],
               "Note": [
-                "crazy multi-parent out-of-order thing",
-                " also including a Derives_from"
+                "crazy multi-parent out-of-order thing, also including a Derives_from"
               ]
             },
             "child_features": [],
@@ -427,8 +422,7 @@
                 "A00469"
               ],
               "Note": [
-                "crazy multi-parent thing",
-                " but this time coming after its parents"
+                "crazy multi-parent thing, but this time coming after its parents"
               ]
             },
             "child_features": [],
@@ -570,8 +564,7 @@
                 "A00469"
               ],
               "Note": [
-                "crazy multi-parent thing",
-                " but this time coming after its parents"
+                "crazy multi-parent thing, but this time coming after its parents"
               ]
             },
             "child_features": [],
