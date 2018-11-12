@@ -153,6 +153,40 @@ describe('GFF3 parser', () => {
     expect(result).toEqual(referenceResult)
   })
 
+  it('can parse some whitespace', () => {
+    const gff3 = `
+SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	 multivalue = val1,val2, val3;testing = blah
+`
+
+    const result = gff.parseStringSync(gff3, {
+      parseFeatures: true,
+      parseDirectives: true,
+      parseComments: true,
+    })
+    expect(result).toHaveLength(1)
+    const referenceResult = [
+      [
+        {
+          seq_id: 'SL2.40%ch01',
+          source: 'IT%AG eugene',
+          type: 'g%e;ne',
+          start: 80999140,
+          end: 81004317,
+          score: null,
+          strand: '+',
+          phase: null,
+          attributes: {
+            multivalue: ['val1', 'val2', 'val3'],
+            testing: ['blah']
+          },
+          child_features: [],
+          derived_features: [],
+        },
+      ],
+    ]
+
+    expect(result).toEqual(referenceResult)
+  })
   it('can parse another string synchronously', () => {
     const gff3 = `
 SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g098840;ID=gene:Solyc01g098840.2;Name=Solyc01g098840.2;from_BOGAS=1;length=5178

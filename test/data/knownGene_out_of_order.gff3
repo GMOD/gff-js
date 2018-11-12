@@ -1,6 +1,6 @@
 ##gff-version 3
 chr17	UCSC	CDS	62468039	62468236	.	-	1	Parent=A00469
-chr17	UCSC	fakething	1	500	.	-	2	Derives_from=A00469;Parent=AB000114,A00469;Note=crazy multi-parent out-of-order thing, also including a Derives_from
+chr17	UCSC	fakething	1	500	.	-	2	Derives_from=A00469;Parent=AB000114,A00469;Note=crazy multi-parent out-of-order thing%2C also including a Derives_from
 chr17	UCSC	CDS	62468490	62468654	.	-	2	Parent=A00469
 chr17	UCSC	mRNA	62467934	62469545	.	-	.	ID=A00469;Dbxref=AFFX-U133:205840_x_at,Locuslink:2688,Genbank-mRNA:A00469,Swissprot:P01241,PFAM:PF00103,AFFX-U95:1332_f_at,Swissprot:SOMA_HUMAN;Note=growth%20hormone%201;Alias=GH1
 chr17	UCSC	three_prime_UTR	62467934	62468038	.	-	.	Parent=A00469
@@ -14,7 +14,7 @@ chr30	UCSC	mRNA	11234	45664	.	-	.	ID=AB000114;Note=guess what this thing has ano
 chr9	UCSC	three_prime_UTR	90517946	90518841	.	-	.	Parent=AB000114
 chr9	UCSC	CDS	90518842	90519167	.	-	1	Parent=AB000114
 chr9	UCSC	CDS	90520309	90521248	.	-	0	Parent=AB000114
-chr17	UCSC	otherfakething	1	500	.	-	2	Derives_from=A00469;Parent=AB000114,A00469;Note=crazy multi-parent thing, but this time coming after its parents
+chr17	UCSC	otherfakething	1	500	.	-	2	Derives_from=A00469;Parent=AB000114,A00469;Note=crazy multi-parent thing%2C but this time coming after its parents
 chr9	UCSC	five_prime_UTR	90521249	90521264	.	-	.	Parent=AB000114
 chr9	UCSC	five_prime_UTR	90527892	90527968	.	-	.	Parent=AB000114
 ###
