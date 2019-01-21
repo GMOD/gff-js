@@ -25,7 +25,6 @@
   "scripts": {
     "test": "jest",
     "coverage": "npm test -- --coverage",
-    "postcoverage": "opn coverage/lcov-report/index.html",
     "lint": "eslint src test",
     "docs": "documentation readme src --section=API",
     "clean": "rimraf dist",
@@ -75,7 +74,6 @@
     "get-stream": "^4.1.0",
     "jest-cli": "^23.6.0",
     "npm-watch": "^0.5.0",
-    "opn-cli": "^4.0.0",
     "prettier": "^1.10.2",
     "rimraf": "^2.6.1"
   }
