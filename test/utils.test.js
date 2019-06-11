@@ -15,6 +15,7 @@ describe('GFF3 utils', () => {
   ;[
     ['foo=bar', { foo: ['bar'] }],
     ['ID=Beep%2Cbonk%3B+Foo\n', { ID: ['Beep,bonk;+Foo'] }],
+    ['Target=Motif;rnd-family-27\n', { Target: ['Motif'] }],
   ].forEach(([input, output]) => {
     it(`parses attr string ${input} correctly`, () => {
       expect(parseAttributes(input)).toEqual(output)
