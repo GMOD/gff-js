@@ -1,11 +1,22 @@
 import gff from '../src'
 
-const { parseAttributes, parseFeature, formatFeature, escapeColumn } = gff.util
+const {
+  parseAttributes,
+  parseFeature,
+  parseDirective,
+  formatFeature,
+  escapeColumn,
+} = gff.util
 
 describe('GFF3 utils', () => {
   it('can escape properly', () => {
     expect(gff.util.escape(5)).toEqual('5')
     // TODO: should add more escape tests
+  })
+  it('can parse a bad directive', () => {
+    expect(() => {
+      parseDirective('##sequence-region no_start_end_on_sequence_region')
+    }).not.toThrow()
   })
   it('can unescape properly', () => {
     expect(gff.util.unescape(' ')).toEqual(' ')
