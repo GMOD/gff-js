@@ -147,8 +147,8 @@ export function parseDirective(line) {
   if (name === 'sequence-region') {
     const c = contents.split(/\s+/, 3)
     parsed.seq_id = c[0]
-    parsed.start = c[1].replace(/\D/g, '')
-    parsed.end = c[2].replace(/\D/g, '')
+    parsed.start = c[1] && c[1].replace(/\D/g, '')
+    parsed.end = c[2] && c[2].replace(/\D/g, '')
   } else if (name === 'genome-build') {
     ;[parsed.source, parsed.buildname] = contents.split(/\s+/, 2)
   }
