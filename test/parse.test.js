@@ -177,7 +177,7 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	 multivalue = val1
           phase: null,
           attributes: {
             multivalue: ['val1', 'val2', 'val3'],
-            testing: ['blah']
+            testing: ['blah'],
           },
           child_features: [],
           derived_features: [],

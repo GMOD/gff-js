@@ -77,7 +77,8 @@ export default class Parser {
     if (this.fastaParser) {
       this.fastaParser.addLine(line)
       return
-    } else if (this.eof) {
+    }
+    if (this.eof) {
       // otherwise, if we are done, ignore this line
       return
     }
@@ -223,9 +224,7 @@ export default class Parser {
         // another location of the same feature
         if (existing[existing.length - 1].type !== featureLine.type) {
           this._parseError(
-            `multi-line feature "${id}" has inconsistent types: "${
-              featureLine.type
-            }", "${existing[existing.length - 1].type}"`,
+            `multi-line feature "${id}" has inconsistent types: "${featureLine.type}", "${existing[existing.length - 1].type}"`,
           )
         }
         existing.push(featureLine)

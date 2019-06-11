@@ -89,7 +89,12 @@ export function parseAttributes(attrString) {
         attrs[nv[0]] = arec
       }
 
-      arec.push(...nv[1].split(',').map(s => s.trim()).map(unescape))
+      arec.push(
+        ...nv[1]
+          .split(',')
+          .map(s => s.trim())
+          .map(unescape),
+      )
     })
   return attrs
 }
@@ -281,9 +286,9 @@ export function formatSequence(seq) {
 export function formatItem(itemOrItems) {
   function formatSingleItem(item) {
     if (item[0] || item.attributes) return formatFeature(item)
-    else if (item.directive) return formatDirective(item)
-    else if (item.sequence) return formatSequence(item)
-    else if (item.comment) return formatComment(item)
+    if (item.directive) return formatDirective(item)
+    if (item.sequence) return formatSequence(item)
+    if (item.comment) return formatComment(item)
     return '# (invalid item found during format)\n'
   }
 
