@@ -1,0 +1,309 @@
+import { Transform, TransformCallback, Readable, Writable } from 'stream'
+import { StringDecoder as Decoder } from 'string_decoder'
+
+import Parser from './parse'
+import {
+  formatItem,
+  formatSequence,
+  GFF3Comment,
+  GFF3Directive,
+  GFF3Feature,
+  GFF3FeatureLine,
+  GFF3FeatureLineWithRefs,
+  GFF3Sequence,
+  GFF3Item,
+} from './util'
+
+export type {
+  GFF3Comment,
+  GFF3Directive,
+  GFF3Feature,
+  GFF3FeatureLine,
+  GFF3FeatureLineWithRefs,
+  GFF3Sequence,
+  GFF3Item,
+}
+
+/** Parser options */
+export interface ParseOptions {
+  /** Text encoding of the input GFF3. default 'utf8' */
+  encoding?: string
+  /** Whether to parse features, default true */
+  parseFeatures?: boolean
+  /** Whether to parse directives, default false */
+  parseDirectives?: boolean
+  /** Whether to parse comments, default false */
+  parseComments?: boolean
+  /** Whether to parse sequences, default true */
+  parseSequences?: boolean
+  /**
+   * Parse all features, directives, comments, and sequences. Overrides other
+   * parsing options. Default false.
+   */
+  parseAll?: boolean
+  /** Maximum number of GFF3 lines to buffer, default 1000 */
+  bufferSize?: number
+}
+
+type ParseOptionsProcessed = Required<Omit<ParseOptions, 'parseAll'>>
+
+// call a callback on the next process tick if running in
+// an environment that supports it
+function _callback(callback: TransformCallback) {
+  if (process && process.nextTick) process.nextTick(callback)
+  else callback()
+}
+
+// shared arg processing for the parse routines
+function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
+  const out = {
+    encoding: 'utf8',
+    parseFeatures: true,
+    parseDirectives: false,
+    parseSequences: true,
+    parseComments: false,
+    bufferSize: 1000,
+    ...options,
+  }
+
+  if (options.parseAll) {
+    out.parseFeatures = true
+    out.parseDirectives = true
+    out.parseComments = true
+    out.parseSequences = true
+  }
+
+  return out
+}
+
+class GFFTransform extends Transform {
+  encoding: string
+  decoder: Decoder
+  textBuffer = ''
+  parser: Parser
+
+  constructor(inputOptions: ParseOptions = {}) {
+    super({ objectMode: true })
+    const options = _processParseOptions(inputOptions)
+
+    this.encoding = inputOptions.encoding || 'utf8'
+
+    this.decoder = new Decoder()
+
+    const push = this.push.bind(this)
+    this.parser = new Parser({
+      featureCallback: options.parseFeatures ? push : undefined,
+      directiveCallback: options.parseDirectives ? push : undefined,
+      commentCallback: options.parseComments ? push : undefined,
+      sequenceCallback: options.parseSequences ? push : undefined,
+      errorCallback: (err) => this.emit('error', err),
+      bufferSize: options.bufferSize,
+    })
+  }
+
+  private _addLine(data: string | undefined) {
+    if (data) {
+      this.parser.addLine(data)
+    }
+  }
+
+  private _nextText(buffer: string) {
+    const pieces = (this.textBuffer + buffer).split(/\r?\n/)
+    this.textBuffer = pieces.pop() || ''
+
+    pieces.forEach((piece) => this._addLine(piece))
+  }
+
+  _transform(
+    chunk: Buffer,
+    _encoding: BufferEncoding,
+    callback: TransformCallback,
+  ) {
+    this._nextText(this.decoder.write(chunk))
+    _callback(callback)
+  }
+
+  _flush(callback: TransformCallback) {
+    if (this.decoder.end) this._nextText(this.decoder.end())
+    if (this.textBuffer != null) this._addLine(this.textBuffer)
+    this.parser.finish()
+    _callback(callback)
+  }
+}
+
+/**
+ * Parse a stream of text data into a stream of feature, directive, comment,
+ * an sequence objects.
+ *
+ * @param options - Parsing options
+ * @returns stream (in objectMode) of parsed items
+ */
+export function parseStream(options: ParseOptions = {}): GFFTransform {
+  return new GFFTransform(options)
+}
+
+/**
+ * Synchronously parse a string containing GFF3 and return an array of the
+ * parsed items.
+ *
+ * @param str - GFF3 string
+ * @param inputOptions - Parsing options
+ * @returns array of parsed features, directives, comments and/or sequences
+ */
+export function parseStringSync(
+  str: string,
+  inputOptions: ParseOptions = {},
+): GFF3Item[] {
+  if (!str) return []
+
+  const options = _processParseOptions(inputOptions)
+
+  const items: GFF3Item[] = []
+  const push = items.push.bind(items)
+
+  const parser = new Parser({
+    featureCallback: options.parseFeatures ? push : undefined,
+    directiveCallback: options.parseDirectives ? push : undefined,
+    commentCallback: options.parseComments ? push : undefined,
+    sequenceCallback: options.parseSequences ? push : undefined,
+    bufferSize: Infinity,
+    errorCallback: (err) => {
+      throw err
+    },
+  })
+
+  str.split(/\r?\n/).forEach(parser.addLine.bind(parser))
+  parser.finish()
+
+  return items
+}
+
+/**
+ * Format an array of GFF3 items (features,directives,comments) into string of
+ * GFF3. Does not insert synchronization (###) marks.
+ *
+ * @param items - Array of features, directives, comments and/or sequences
+ * @returns the formatted GFF3
+ */
+export function formatSync(items: GFF3Item[]): string {
+  // sort items into seq and other
+  const other: (GFF3Feature | GFF3Directive | GFF3Comment)[] = []
+  const sequences: GFF3Sequence[] = []
+  items.forEach((i) => {
+    if ('sequence' in i) sequences.push(i)
+    else other.push(i)
+  })
+  let str = other.map(formatItem).join('')
+  if (sequences.length) {
+    str += '##FASTA\n'
+    str += sequences.map(formatSequence).join('')
+  }
+  return str
+}
+
+interface FormatOptions {
+  minSyncLines?: number
+  insertVersionDirective?: boolean
+  encoding?: BufferEncoding
+}
+
+class FormattingTransform extends Transform {
+  linesSinceLastSyncMark = 0
+  haveWeEmittedData = false
+  fastaMode = false
+  minLinesBetweenSyncMarks: number
+  insertVersionDirective: boolean
+  constructor(options: FormatOptions = {}) {
+    super(Object.assign(options, { objectMode: true }))
+    this.minLinesBetweenSyncMarks = options.minSyncLines || 100
+    this.insertVersionDirective = options.insertVersionDirective || false
+  }
+
+  _transform(
+    chunk: GFF3Item[],
+    _encoding: BufferEncoding,
+    callback: TransformCallback,
+  ) {
+    // if we have not emitted anything yet, and this first
+    // chunk is not a gff-version directive, emit one
+    let str
+    if (!this.haveWeEmittedData && this.insertVersionDirective) {
+      const thisChunk = Array.isArray(chunk) ? chunk[0] : chunk
+      if ('directive' in thisChunk) {
+        if (thisChunk.directive !== 'gff-version') {
+          this.push('##gff-version 3\n')
+        }
+      }
+    }
+
+    // if it's a sequence chunk coming down, emit a FASTA directive and
+    // change to FASTA mode
+    if ('sequence' in chunk && !this.fastaMode) {
+      this.push('##FASTA\n')
+      this.fastaMode = true
+    }
+
+    if (Array.isArray(chunk)) str = chunk.map(formatItem).join('')
+    else str = formatItem(chunk)
+
+    this.push(str)
+
+    if (this.linesSinceLastSyncMark >= this.minLinesBetweenSyncMarks) {
+      this.push('###\n')
+      this.linesSinceLastSyncMark = 0
+    } else {
+      // count the number of newlines in this chunk
+      let count = 0
+      for (let i = 0; i < str.length; i += 1) {
+        if (str[i] === '\n') count += 1
+      }
+      this.linesSinceLastSyncMark += count
+    }
+
+    this.haveWeEmittedData = true
+    _callback(callback)
+  }
+}
+
+/**
+ * Format a stream of features, directives, comments and/or sequences into a
+ * stream of GFF3 text.
+ *
+ * Inserts synchronization (###) marks automatically.
+ *
+ * @param options - parser options
+ */
+export function formatStream(options: FormatOptions = {}): FormattingTransform {
+  return new FormattingTransform(options)
+}
+
+/**
+ * Format a stream of features, directives, comments and/or sequences into a
+ * GFF3 file and write it to the filesystem.
+
+ * Inserts synchronization (###) marks and a ##gff-version
+ * directive automatically (if one is not already present).
+ *
+ * @param stream - the stream to write to the file
+ * @param filename - the file path to write to
+ * @param options - parser options
+ * @returns promise for null that resolves when the stream has been written
+ */
+export function formatFile(
+  stream: Readable,
+  writeStream: Writable,
+  options: FormatOptions = {},
+): Promise<null> {
+  const newOptions = {
+    insertVersionDirective: true,
+    ...options,
+  }
+
+  return new Promise((resolve, reject) => {
+    stream
+      .pipe(new FormattingTransform(newOptions))
+      .on('end', () => resolve(null))
+      .on('error', reject)
+      .pipe(writeStream)
+  })
+}
