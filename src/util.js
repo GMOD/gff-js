@@ -38,11 +38,8 @@ export function unescape(s) {
  * @returns {String}
  */
 function _escape(regex, s) {
-  return String(s).replace(regex, ch => {
-    let hex = ch
-      .charCodeAt(0)
-      .toString(16)
-      .toUpperCase()
+  return String(s).replace(regex, (ch) => {
+    let hex = ch.charCodeAt(0).toString(16).toUpperCase()
 
     // lol, apparently there's no native function for fixed-width hex output
     if (hex.length < 2) hex = `0${hex}`
@@ -78,7 +75,7 @@ export function parseAttributes(attrString) {
   attrString
     .replace(/\r?\n$/, '')
     .split(';')
-    .forEach(a => {
+    .forEach((a) => {
       const nv = a.split('=', 2)
       if (!(nv[1] && nv[1].length)) return
 
@@ -92,7 +89,7 @@ export function parseAttributes(attrString) {
       arec.push(
         ...nv[1]
           .split(',')
-          .map(s => s.trim())
+          .map((s) => s.trim())
           .map(unescape),
       )
     })
@@ -106,7 +103,7 @@ export function parseAttributes(attrString) {
  */
 export function parseFeature(line) {
   // split the line into columns and replace '.' with null in each column
-  const f = line.split('\t').map(a => (a === '.' ? null : a))
+  const f = line.split('\t').map((a) => (a === '.' ? null : a))
 
   // unescape only the ref, source, and type columns
   f[0] = unescape(f[0])
@@ -163,7 +160,7 @@ export function parseDirective(line) {
  */
 export function formatAttributes(attrs) {
   const attrOrder = []
-  Object.keys(attrs).forEach(tag => {
+  Object.keys(attrs).forEach((tag) => {
     const val = attrs[tag]
     let valstring
     if (val.hasOwnProperty('toString')) {
@@ -216,14 +213,14 @@ function _formatSingleFeature(f, seenFeature) {
 
 function _formatFeature(feature, seenFeature) {
   if (Array.isArray(feature)) {
-    return feature.map(f => _formatFeature(f, seenFeature)).join('')
+    return feature.map((f) => _formatFeature(f, seenFeature)).join('')
   }
 
   const strings = [_formatSingleFeature(feature, seenFeature)]
-  ;['child_features', 'derived_features'].forEach(multiSlot => {
+  ;['child_features', 'derived_features'].forEach((multiSlot) => {
     if (feature[multiSlot]) {
       strings.push(
-        ...feature[multiSlot].map(f => _formatFeature(f, seenFeature)),
+        ...feature[multiSlot].map((f) => _formatFeature(f, seenFeature)),
       )
     }
   })
@@ -293,7 +290,7 @@ export function formatItem(itemOrItems) {
   }
 
   if (typical.isArrayLike(itemOrItems)) {
-    return Array.map(itemOrItems, formatSingleItem)
+    return itemOrItems.map((item) => formatSingleItem(item))
   }
   return formatSingleItem(itemOrItems)
 }
