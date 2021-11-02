@@ -1,0 +1,33 @@
+name: Pull Request
+
+on: pull_request
+
+jobs:
+  lint:
+    name: Lint on node 14 and ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14'
+      - name: Install deps and build (with cache)
+        uses: bahmutov/npm-install@v1
+      - name: Lint codebase
+        run: yarn lint
+  test:
+    name: Test and lint on node 14.x and ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install deps (with cache)
+        uses: bahmutov/npm-install@v1
+      - name: Test codebase
+        run: yarn test
+      - name: Upload coverage
+        run: bash <(curl -s https://codecov.io/bash)
