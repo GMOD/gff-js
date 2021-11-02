@@ -27,9 +27,9 @@ describe('GFF3 formatting', () => {
     })
 
     it(`can roundtrip ${file}.gff3 with formatStream`, async () => {
-      const expectedGFF3 = (await readfile(
-        require.resolve(`./data/${file}.reformatted.gff3`),
-      )).toString('utf8')
+      const expectedGFF3 = (
+        await readfile(require.resolve(`./data/${file}.reformatted.gff3`))
+      ).toString('utf8')
 
       const resultGFF3 = await getStream(
         fs
@@ -63,9 +63,9 @@ describe('GFF3 formatting', () => {
 
         const resultGFF3 = (await readfile(tmpFile.path)).toString('utf8')
 
-        const expectedGFF3 = (await readfile(
-          require.resolve(`./data/${file}.reformatted.gff3`),
-        )).toString('utf8')
+        const expectedGFF3 = (
+          await readfile(require.resolve(`./data/${file}.reformatted.gff3`))
+        ).toString('utf8')
 
         expect(resultGFF3).toEqual(expectedGFF3)
       })
