@@ -1,18 +1,17 @@
-const gff = require('../dist').default
-
-let itemBuffer
+import gff from './'
+let itemBuffer: any
 
 process.stdout.write('[\n')
 process.stdin
   .pipe(gff.parseStream({ parseAll: true }))
-  .on('data', item => {
+  .on('data', (item) => {
     itemBuffer = JSON.stringify(item)
     if (itemBuffer) {
       process.stdout.write(itemBuffer)
       process.stdout.write(',\n')
     }
   })
-  .on('error', err => {
+  .on('error', (err) => {
     console.error(err)
     process.exit(1)
   })

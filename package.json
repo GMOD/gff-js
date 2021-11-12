@@ -5,41 +5,30 @@
   "license": "MIT",
   "repository": "GMOD/gff-js",
   "main": "dist/index.js",
-  "module": "dist/gff.esm.js",
-  "typings": "dist/index.d.ts",
+  "module": "esm/index.js",
   "author": {
     "name": "Robert Buels",
     "email": "rbuels@gmail.com",
     "url": "https://github.com/rbuels"
   },
-  "engines": {
-    "node": ">=10"
-  },
   "bin": {
-    "gff-to-json": "bin/gff-to-json.js"
-  },
-  "directories": {
-    "lib": "dist"
+    "gff-to-json": "dist/gff-to-json.js"
   },
   "files": [
     "dist",
-    "src",
-    "bin"
+    "esm"
   ],
   "scripts": {
     "test": "tsdx test",
+    "clean": "rimraf dist",
     "coverage": "npm test -- --coverage",
     "lint": "eslint src test",
     "docs": "npm-run-all docs:*",
     "docs:api": "documentation readme src/api.ts --section=API  --shallow",
     "docs:util": "documentation readme src/util.ts --section=util  --shallow",
     "docs:format": "prettier --write README.md",
-    "build": "tsdx build",
-    "start": "tsdx watch",
-    "watch": "tsdx watch",
-    "patch": "npm version patch && npm publish",
-    "minor": "npm version minor && npm publish",
-    "major": "npm version major && npm publish",
+    "prebuild": "npm run clean",
+    "build": "tsc --target esnext --outDir esm && tsc --target es5 --outDir dist",
     "prepublishOnly": "npm test && npm run build",
     "postpublish": "git push origin master --follow-tags"
   },
@@ -51,6 +40,8 @@
     "genomics"
   ],
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.16.0",
+    "@types/node": "^16.11.7",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
     "documentation": "^13.2.5",
@@ -60,12 +51,10 @@
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-tsdoc": "^0.2.14",
-    "microbundle": "^0.13.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.3.2",
     "tmp-promise": "^3.0.2",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.3.0",
+    "tslib": "^2.3.1",
     "typescript": "^4.3.5"
   }
 }
