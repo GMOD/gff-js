@@ -1,4 +1,4 @@
-import gff from './'
+import gff from './index'
 let itemBuffer: any
 
 process.stdout.write('[\n')

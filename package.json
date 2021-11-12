@@ -28,7 +28,7 @@
     "docs:util": "documentation readme src/util.ts --section=util  --shallow",
     "docs:format": "prettier --write README.md",
     "prebuild": "npm run clean",
-    "build": "tsc --target esnext --outDir esm && tsc --target es5 --outDir dist",
+    "build": "tsc --target es2018 --outDir esm && tsc --target es5 --outDir dist",
     "prepublishOnly": "npm test && npm run build",
     "postpublish": "git push origin master --follow-tags"
   },
@@ -54,6 +54,7 @@
     "jest": "^27.3.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.3.2",
+    "rimraf": "^3.0.2",
     "tmp-promise": "^3.0.2",
     "ts-jest": "^27.0.7",
     "tslib": "^2.3.1",

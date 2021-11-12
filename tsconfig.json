@@ -1,19 +1,14 @@
 {
   "include": ["src"],
   "compilerOptions": {
-    "target": "esnext",
     "types": ["node", "jest"],
-    "outDir": "dist",
     "lib": ["dom", "esnext"],
-    "importHelpers": true,
     "declaration": true,
+    "moduleResolution": "node",
     "sourceMap": true,
-    "rootDir": "./src",
     "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "esModuleInterop": true
   }
 }
