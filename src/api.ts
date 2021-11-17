@@ -27,7 +27,7 @@ export type {
 /** Parser options */
 export interface ParseOptions {
   /** Text encoding of the input GFF3. default 'utf8' */
-  encoding?: string
+  encoding?: BufferEncoding
   /** Whether to parse features, default true */
   parseFeatures?: boolean
   /** Whether to parse directives, default false */
@@ -57,7 +57,7 @@ function _callback(callback: TransformCallback) {
 // shared arg processing for the parse routines
 function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
   const out = {
-    encoding: 'utf8',
+    encoding: 'utf8' as const,
     parseFeatures: true,
     parseDirectives: false,
     parseSequences: true,
@@ -77,7 +77,7 @@ function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
 }
 
 class GFFTransform extends Transform {
-  encoding: string
+  encoding: BufferEncoding
   decoder: Decoder
   textBuffer = ''
   parser: Parser
@@ -150,6 +150,302 @@ export function parseStream(options: ParseOptions = {}): GFFTransform {
  * @param inputOptions - Parsing options
  * @returns array of parsed features, directives, comments and/or sequences
  */
+export function parseStringSync(
+  str: string,
+  inputOptions?: { encoding?: BufferEncoding; bufferSize?: number } | undefined,
+): (GFF3Feature | GFF3Sequence)[]
+export function parseStringSync<T extends boolean>(
+  str: string,
+  inputOptions: {
+    parseAll?: T
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): T extends true ? GFF3Item[] : never
+export function parseStringSync<F extends boolean>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Sequence[]
+export function parseStringSync<D extends boolean>(
+  str: string,
+  inputOptions: {
+    parseDirectives: D
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): D extends true
+  ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+  : (GFF3Feature | GFF3Sequence)[]
+export function parseStringSync<C extends boolean>(
+  str: string,
+  inputOptions: {
+    parseComments: C
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): C extends true
+  ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+  : (GFF3Feature | GFF3Sequence)[]
+export function parseStringSync<S extends boolean>(
+  str: string,
+  inputOptions: {
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): S extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Feature[]
+export function parseStringSync<F extends boolean, D extends boolean>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    parseDirectives: D
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true
+  ? D extends true
+    ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Sequence)[]
+  : D extends true
+  ? (GFF3Directive | GFF3Sequence)[]
+  : GFF3Sequence[]
+export function parseStringSync<F extends boolean, C extends boolean>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    parseComments: C
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true
+  ? C extends true
+    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Sequence)[]
+  : C extends true
+  ? (GFF3Comment | GFF3Sequence)[]
+  : GFF3Sequence[]
+export function parseStringSync<F extends boolean, S extends boolean>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true
+  ? S extends true
+    ? (GFF3Feature | GFF3Sequence)[]
+    : GFF3Feature[]
+  : S extends true
+  ? GFF3Sequence[]
+  : []
+export function parseStringSync<D extends boolean, C extends boolean>(
+  str: string,
+  inputOptions: {
+    parseDirectives: D
+    parseComments: C
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): D extends true
+  ? C extends true
+    ? (GFF3Feature | GFF3Directive | GFF3Comment | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+  : C extends true
+  ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+  : (GFF3Feature | GFF3Sequence)[]
+export function parseStringSync<D extends boolean, S extends boolean>(
+  str: string,
+  inputOptions: {
+    parseDirectives: D
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): D extends true
+  ? S extends true
+    ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Directive)[]
+  : S extends true
+  ? (GFF3Feature | GFF3Sequence)[]
+  : GFF3Feature[]
+export function parseStringSync<C extends boolean, S extends boolean>(
+  str: string,
+  inputOptions: {
+    parseComments: C
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): C extends true
+  ? S extends true
+    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Comment)[]
+  : S extends true
+  ? (GFF3Feature | GFF3Sequence)[]
+  : GFF3Feature[]
+export function parseStringSync<
+  F extends boolean,
+  D extends boolean,
+  C extends boolean,
+>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    parseDirectives: D
+    parseComments: C
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true
+  ? D extends true
+    ? C extends true
+      ? GFF3Item[]
+      : (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+    : C extends true
+    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Sequence)[]
+  : D extends true
+  ? C extends true
+    ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
+    : (GFF3Directive | GFF3Sequence)[]
+  : C extends true
+  ? (GFF3Comment | GFF3Sequence)[]
+  : GFF3Sequence[]
+export function parseStringSync<
+  F extends boolean,
+  D extends boolean,
+  S extends boolean,
+>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    parseDirectives: D
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true
+  ? D extends true
+    ? S extends true
+      ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+      : (GFF3Feature | GFF3Directive)[]
+    : S extends true
+    ? (GFF3Feature | GFF3Sequence)[]
+    : GFF3Feature[]
+  : D extends true
+  ? S extends true
+    ? (GFF3Directive | GFF3Sequence)[]
+    : GFF3Directive[]
+  : S extends true
+  ? GFF3Sequence[]
+  : []
+export function parseStringSync<
+  F extends boolean,
+  C extends boolean,
+  S extends boolean,
+>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    parseComments: C
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true
+  ? C extends true
+    ? S extends true
+      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+      : (GFF3Feature | GFF3Comment)[]
+    : S extends true
+    ? (GFF3Feature | GFF3Sequence)[]
+    : GFF3Feature[]
+  : C extends true
+  ? S extends true
+    ? (GFF3Comment | GFF3Sequence)[]
+    : GFF3Comment[]
+  : S extends true
+  ? GFF3Sequence[]
+  : []
+export function parseStringSync<
+  D extends boolean,
+  C extends boolean,
+  S extends boolean,
+>(
+  str: string,
+  inputOptions: {
+    parseFeatures: D
+    parseComments: C
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): D extends true
+  ? C extends true
+    ? S extends true
+      ? GFF3Item[]
+      : (GFF3Feature | GFF3Directive | GFF3Comment)[]
+    : S extends true
+    ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Directive)[]
+  : C extends true
+  ? S extends true
+    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Comment)[]
+  : S extends true
+  ? (GFF3Feature | GFF3Sequence)[]
+  : GFF3Feature[]
+export function parseStringSync<
+  F extends boolean,
+  D extends boolean,
+  C extends boolean,
+  S extends boolean,
+>(
+  str: string,
+  inputOptions: {
+    parseFeatures: F
+    parseDirectives: D
+    parseComments: C
+    parseSequences: S
+    encoding?: BufferEncoding
+    bufferSize?: number
+  },
+): F extends true
+  ? D extends true
+    ? C extends true
+      ? S extends true
+        ? GFF3Item[]
+        : (GFF3Feature | GFF3Directive | GFF3Comment)[]
+      : S extends true
+      ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+      : (GFF3Feature | GFF3Directive)[]
+    : C extends true
+    ? S extends true
+      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+      : (GFF3Feature | GFF3Comment)[]
+    : S extends true
+    ? (GFF3Feature | GFF3Sequence)[]
+    : GFF3Feature[]
+  : D extends true
+  ? C extends true
+    ? S extends true
+      ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
+      : (GFF3Directive | GFF3Comment)[]
+    : S extends true
+    ? (GFF3Directive | GFF3Sequence)[]
+    : GFF3Directive[]
+  : C extends true
+  ? S extends true
+    ? (GFF3Comment | GFF3Sequence)[]
+    : GFF3Comment[]
+  : S extends true
+  ? GFF3Sequence[]
+  : []
 export function parseStringSync(
   str: string,
   inputOptions: ParseOptions = {},
