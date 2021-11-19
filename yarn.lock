@@ -861,7 +861,14 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.8.tgz#edf1bf1dbf4e04413ca8e5b17b3b7d7d54b59818"
   integrity sha512-YSBPTLTVm2e2OoQIDYx8HaeWJ5tTToLH67kXR7zYNGupXMEHa2++G8k+DczX2cFVgalypqtyZIcU19AFcmOpmg==
 
-"@types/mdast@^3.0.0", "@types/mdast@^3.0.3":
+"@types/mdast@^3.0.0":
+  version "3.0.10"
+  resolved "https://registry.yarnpkg.com/@types/mdast/-/mdast-3.0.10.tgz#4724244a82a4598884cbbe9bcfd73dff927ee8af"
+  integrity sha512-W864tg/Osz1+9f4lrGTZpCSO5/z4608eUp19tbozkq2HJK6i3z1kT0H9tlADXuYIb1YYOBByU4Jsqkk75q48qA==
+  dependencies:
+    "@types/unist" "*"
+
+"@types/mdast@^3.0.3":
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/@types/mdast/-/mdast-3.0.7.tgz#cba63d0cc11eb1605cea5c0ad76e02684394166b"
   integrity sha512-YwR7OK8aPmaBvMMUi+pZXBNoW2unbVbfok4YRqGMJBe1dpDlzpRkJrYEYmvjxgs5JhuQmKfDexrN98u941Zasg==
@@ -1514,9 +1521,9 @@ caniuse-lite@^1.0.30001274:
   integrity sha512-kFXwYvHe5rix25uwueBxC569o53J6TpnGu0BEEn+6Lhl2vsnAumRFWEBhDft1fwyo6m1r4i+RqA4+163FpeFcA==
 
 ccount@^1.0.0:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/ccount/-/ccount-1.0.4.tgz#9cf2de494ca84060a2a8d2854edd6dfb0445f386"
-  integrity sha512-fpZ81yYfzentuieinmGnphk0pLkOTMm6MZdVqwd77ROvhko6iujLNGrHH5E7utq3ygWklwfmwuG+A7P+NpqT6w==
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/ccount/-/ccount-1.1.0.tgz#246687debb6014735131be8abab2d93898f8d043"
+  integrity sha512-vlNK021QdI7PNeiUh/lKkC/mNHHfV0m/Ad5JoI0TYtlBnJAslM/JIkm/tGC88bkLIwO6OQ5uV6ztS6kVAtCDlg==
 
 chalk@^2.0.0, chalk@^2.3.0, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
@@ -5707,9 +5714,9 @@ remark-gfm@^1.0.0:
     micromark-extension-gfm "^0.3.0"
 
 remark-html@^13.0.1:
-  version "13.0.1"
-  resolved "https://registry.yarnpkg.com/remark-html/-/remark-html-13.0.1.tgz#d5b2d8be01203e61fc37403167ca7584879ad675"
-  integrity sha512-K5KQCXWVz+harnyC+UVM/J9eJWCgjYRqFeZoZf2NgP0iFbuuw/RgMZv3MA34b/OEpGnstl3oiOUtZzD3tJ+CBw==
+  version "13.0.2"
+  resolved "https://registry.yarnpkg.com/remark-html/-/remark-html-13.0.2.tgz#de5f052749ff61fc904c9708c155c88a2e2655dc"
+  integrity sha512-LhSRQ+3RKdBqB/RGesFWkNNfkGqprDUCwjq54SylfFeNyZby5kqOG8Dn/vYsRoM8htab6EWxFXCY6XIZvMoRiQ==
   dependencies:
     hast-util-sanitize "^3.0.0"
     hast-util-to-html "^7.0.0"
@@ -7091,15 +7098,15 @@ xmlchars@^2.2.0:
   resolved "https://registry.yarnpkg.com/xmlchars/-/xmlchars-2.2.0.tgz#060fe1bcb7f9c76fe2a17db86a9bc3ab894210cb"
   integrity sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==
 
-xtend@^4.0.0, xtend@~4.0.0, xtend@~4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.1.tgz#a5c6d532be656e23db820efb943a1f04998d63af"
-  integrity sha1-pcbVMr5lbiPbgg77lDofBJmNY68=
-
-xtend@^4.0.2:
+xtend@^4.0.0, xtend@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
+
+xtend@~4.0.0, xtend@~4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.1.tgz#a5c6d532be656e23db820efb943a1f04998d63af"
+  integrity sha1-pcbVMr5lbiPbgg77lDofBJmNY68=
 
 y18n@^4.0.0:
   version "4.0.3"
