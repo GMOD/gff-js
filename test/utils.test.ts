@@ -1,4 +1,5 @@
 import gff from '../src'
+import { GFF3FeatureLine } from '../src/util'
 
 const {
   parseAttributes,
@@ -20,20 +21,21 @@ describe('GFF3 utils', () => {
   })
   it('can unescape properly', () => {
     expect(gff.util.unescape(' ')).toEqual(' ')
-    expect(gff.util.unescape(5)).toEqual('5')
+    expect(gff.util.unescape('5')).toEqual('5')
     // TODO: should add more unescape tests
   })
-  ;[
+  const attributeCases: [string, Record<string, string[]>][] = [
     ['foo=bar', { foo: ['bar'] }],
     ['ID=Beep%2Cbonk%3B+Foo\n', { ID: ['Beep,bonk;+Foo'] }],
     ['Target=Motif;rnd-family-27\n', { Target: ['Motif'] }],
-  ].forEach(([input, output]) => {
+  ]
+  attributeCases.forEach(([input, output]) => {
     it(`parses attr string ${input} correctly`, () => {
       expect(parseAttributes(input)).toEqual(output)
     })
   })
 
-  const tests = [
+  const tests: [string, GFF3FeatureLine][] = [
     [
       `FooSeq\tbarsource\tmatch\t234\t234\t0\t+\t.\tID=Beep%2Cbonk%3B+Foo\n`,
       {

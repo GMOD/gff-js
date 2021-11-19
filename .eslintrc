@@ -1,23 +1,15 @@
 {
+  "parser": "@typescript-eslint/parser",
   "extends": [
-    "airbnb-base",
-    "prettier"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
   ],
   "plugins": [
-    "prettier"
+    "eslint-plugin-tsdoc"
   ],
-  "env": {
-    "jest": true
-  },
   "rules": {
+    "tsdoc/syntax": "warn",
     "no-underscore-dangle": 0,
-    "prettier/prettier": [
-      "error",
-      {
-        "singleQuote": true,
-        "semi": false,
-        "trailingComma": "all"
-      }
-    ]
+    "prettier/prettier": "warn"
   }
 }

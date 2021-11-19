@@ -5,34 +5,30 @@
   "license": "MIT",
   "repository": "GMOD/gff-js",
   "main": "dist/index.js",
+  "module": "esm/index.js",
   "author": {
     "name": "Robert Buels",
     "email": "rbuels@gmail.com",
     "url": "https://github.com/rbuels"
   },
-  "engines": {
-    "node": ">=6"
-  },
   "bin": {
     "gff-to-json": "dist/gff-to-json.js"
   },
-  "directories": {
-    "lib": "dist"
-  },
   "files": [
-    "dist"
+    "dist",
+    "esm"
   ],
   "scripts": {
     "test": "jest",
+    "clean": "rimraf dist",
     "coverage": "npm test -- --coverage",
     "lint": "eslint src test",
-    "docs": "documentation readme src --section=API",
-    "clean": "rimraf dist",
+    "docs": "npm-run-all docs:*",
+    "docs:api": "documentation readme src/api.ts --section=API  --shallow",
+    "docs:util": "documentation readme src/util.ts --section=util  --shallow",
+    "docs:format": "prettier --write README.md",
     "prebuild": "npm run clean",
-    "build": "babel src bin -d dist",
-    "patch": "npm version patch && npm publish",
-    "minor": "npm version minor && npm publish",
-    "major": "npm version major && npm publish",
+    "build": "tsc --target es2018 --outDir esm && tsc --target es5 --outDir dist",
     "prepublishOnly": "npm test && npm run build",
     "postpublish": "git push origin master --follow-tags"
   },
@@ -43,27 +39,25 @@
     "gff",
     "genomics"
   ],
-  "dependencies": {
-    "@babel/runtime": "^7.0.0",
-    "typical": "^7.1.1"
-  },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.16.0",
-    "@babel/plugin-transform-runtime": "^7.0.0",
-    "@babel/preset-env": "^7.16.0",
-    "babel-jest": "^27.3.1",
-    "documentation": "^9.1.1",
-    "es6-promisify": "^7.0.0",
-    "eslint": "^5.12.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-config-prettier": "^4.1.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-prettier": "^3.0.1",
-    "get-stream": "^4.1.0",
+    "@types/jest": "^27.0.2",
+    "@types/node": "^16.11.7",
+    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/parser": "^4.28.5",
+    "documentation": "^13.2.5",
+    "eslint": "^7.31.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-tsdoc": "^0.2.14",
     "jest": "^27.3.1",
-    "prettier": "^2.4.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
-    "tmp-promise": "^3.0.3"
+    "tmp-promise": "^3.0.2",
+    "ts-jest": "^27.0.7",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.4"
   }
 }

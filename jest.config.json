@@ -1,4 +1,0 @@
-{
-  "transformIgnorePatterns": ["/node_modules/(?!typical).+\\.js$"],
-  "testEnvironment": "node"
-}
