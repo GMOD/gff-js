@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "test": "jest",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist esm",
     "coverage": "npm test -- --coverage",
     "lint": "eslint src test",
     "docs": "npm-run-all docs:*",
