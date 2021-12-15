@@ -223,7 +223,7 @@ Parser options
 
 Text encoding of the input GFF3. default 'utf8'
 
-Type: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)
+Type: BufferEncoding
 
 #### parseFeatures
 
@@ -281,9 +281,9 @@ parsed items.
 #### Parameters
 
 - `str` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** GFF3 string
-- `inputOptions` **[ParseOptions](#parseoptions)** Parsing options (optional, default `{}`)
+- `inputOptions` **({encoding: BufferEncoding?, bufferSize: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
 
-Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)\<GFF3Item>** array of parsed features, directives, comments and/or sequences
+Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<(GFF3Feature | GFF3Sequence)>** array of parsed features, directives, comments and/or sequences
 
 ### formatSync
 

@@ -21,15 +21,17 @@
   "scripts": {
     "test": "jest",
     "clean": "rimraf dist esm",
-    "coverage": "npm test -- --coverage",
+    "coverage": "npm-run-all \"test -- --coverage\"",
     "lint": "eslint src test",
     "docs": "npm-run-all docs:*",
     "docs:api": "documentation readme src/api.ts --section=API  --shallow",
     "docs:util": "documentation readme src/util.ts --section=util  --shallow",
     "docs:format": "prettier --write README.md",
-    "prebuild": "npm run clean",
-    "build": "tsc --target es2018 --outDir esm && tsc --target es5 --outDir dist",
-    "prepublishOnly": "npm test && npm run build",
+    "prebuild": "npm-run-all clean",
+    "build:esm": "tsc --target es2018 --outDir esm",
+    "build:es5": "tsc --target es5 --outDir dist",
+    "build": "npm-run-all --parallel build:*",
+    "prepublishOnly": "npm-run-all test build",
     "postpublish": "git push origin master --follow-tags"
   },
   "keywords": [
