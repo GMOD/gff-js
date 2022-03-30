@@ -26,6 +26,8 @@ export type {
 
 /** Parser options */
 export interface ParseOptions {
+  /** Whether to resolve references to derives from features */
+  disableDerivesFromReferences?: boolean
   /** Text encoding of the input GFF3. default 'utf8' */
   encoding?: BufferEncoding
   /** Whether to parse features, default true */
@@ -63,6 +65,7 @@ function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
     parseSequences: true,
     parseComments: false,
     bufferSize: 1000,
+    disableDerivesFromReferences: false,
     ...options,
   }
 
@@ -98,6 +101,7 @@ class GFFTransform extends Transform {
       sequenceCallback: options.parseSequences ? push : undefined,
       errorCallback: (err) => this.emit('error', err),
       bufferSize: options.bufferSize,
+      disableDerivesFromReferences: options.disableDerivesFromReferences,
     })
   }
 

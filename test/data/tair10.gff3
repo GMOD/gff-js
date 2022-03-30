@@ -1,4 +1,4 @@
-1	TAIR10	chromosome      1	30427671	.	.	.	ID=Chr1;Name=Chr1
+1	TAIR10	chromosome	1	30427671	.	.	.	ID=Chr1;Name=Chr1
 1	TAIR10	gene	3631	5899	.	+	.	ID=AT1G01010;Note=protein_coding_gene;Name=AT1G01010
 1	TAIR10	mRNA	3631	5899	.	+	.	ID=AT1G01010.1;Parent=AT1G01010;Name=AT1G01010.1;Index=1
 1	TAIR10	protein	3760	5630	.	+	.	ID=AT1G01010.1-Protein;Name=AT1G01010.1;Derives_from=AT1G01010.1
