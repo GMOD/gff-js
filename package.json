@@ -33,7 +33,7 @@
     "build:es5": "tsc --target es5 --outDir dist",
     "build": "npm-run-all --parallel build:*",
     "prepublishOnly": "npm-run-all test build",
-    "postpublish": "git push origin master --follow-tags"
+    "postversion": "git push --follow-tags"
   },
   "keywords": [
     "bionode",
