@@ -9,7 +9,7 @@ Read and write GFF3 data performantly. This module aims to be a complete impleme
 - supports features with multiple locations and features with multiple parents
 - reconstructs feature hierarchies of both `Parent` and `Derives_from` relationships
 - parses FASTA sections
-- does no validation except for `Parent` and `Derives_from` relationships
+- does no validation except for referential integrity of `Parent` and `Derives_from` relationships
 - only compatible with GFF3
 
 ## Install
