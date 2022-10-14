@@ -44,6 +44,7 @@ interface ParserArgs {
   directiveCallback?(directive: GFF3.GFF3Directive): void
   sequenceCallback?(sequence: GFF3.GFF3Sequence): void
   bufferSize?: number
+  strictDerives?: boolean
 }
 
 interface References {
@@ -65,6 +66,7 @@ export default class Parser {
   // set when the file switches over to FASTA
   eof = false
   lineNumber = 0
+  strictDerives = false
   // features that we have to keep on hand for now because they
   // might be referenced by something else
   private _underConstructionTopLevel: GFF3.GFF3Feature[] = []
@@ -94,9 +96,10 @@ export default class Parser {
     this.errorCallback = args.errorCallback || nullFunc
     this.directiveCallback = args.directiveCallback || nullFunc
     this.sequenceCallback = args.sequenceCallback || nullFunc
+    this.strictDerives = args.strictDerives ?? false
 
     // number of lines to buffer
-    this.bufferSize = args.bufferSize === undefined ? 1000 : args.bufferSize
+    this.bufferSize = 10000 //args.bufferSize === undefined ? 100000 : args.bufferSize
   }
 
   addLine(line: string): void {
@@ -173,13 +176,7 @@ export default class Parser {
 
   private _enforceBufferSizeLimit(additionalItemCount = 0) {
     const _unbufferItem = (item?: GFF3.GFF3Feature) => {
-      if (
-        item &&
-        Array.isArray(item) &&
-        item[0].attributes &&
-        item[0].attributes.ID &&
-        item[0].attributes.ID[0]
-      ) {
+      if (item && Array.isArray(item) && item[0].attributes?.ID?.[0]) {
         const ids = item[0].attributes.ID
         ids.forEach((id) => {
           delete this._underConstructionById[id]
@@ -188,8 +185,8 @@ export default class Parser {
         item.forEach((i) => {
           if (i.child_features)
             i.child_features.forEach((c) => _unbufferItem(c))
-          if (i.derived_features)
-            i.derived_features.forEach((d) => _unbufferItem(d))
+          // if (i.derived_features)
+          //   i.derived_features.forEach((d) => _unbufferItem(d))
         })
       }
     }
@@ -223,7 +220,11 @@ export default class Parser {
       throw new Error(
         `some features reference other features that do not exist in the file (or in the same '###' scope). ${JSON.stringify(
           this._underConstructionOrphans,
-        )}`,
+          null,
+          2,
+        ).slice(0, 2000)} ${Object.keys(
+          this._underConstructionOrphans,
+        )} ll ${JSON.stringify(this._completedReferences, null, 2)}`,
       )
     }
   }
@@ -241,9 +242,9 @@ export default class Parser {
     // NOTE: a feature is an arrayref of one or more feature lines.
     const ids = featureLine.attributes?.ID || []
     const parents = featureLine.attributes?.Parent || []
-    const derives = featureLine.attributes?.Derives_from || []
+    // const derives = featureLine.attributes?.Derives_from || []
 
-    if (!ids.length && !parents.length && !derives.length) {
+    if (!ids.length && !parents.length) {
       // if it has no IDs and does not refer to anything, we can just
       // output it
       this._emitItem([featureLine])
@@ -270,7 +271,7 @@ export default class Parser {
         feature = [featureLine]
 
         this._enforceBufferSizeLimit(1)
-        if (!parents.length && !derives.length) {
+        if (!parents.length) {
           this._underConstructionTopLevel.push(feature)
         }
         this._underConstructionById[id] = feature
@@ -283,7 +284,7 @@ export default class Parser {
     // try to resolve all its references
     this._resolveReferencesFrom(
       feature || [featureLine],
-      { Parent: parents, Derives_from: derives },
+      { Parent: parents, Derives_from: [] },
       ids,
     )
   }
@@ -299,9 +300,9 @@ export default class Parser {
     feature.forEach((loc) => {
       loc.child_features.push(...references.Parent)
     })
-    feature.forEach((loc) => {
-      loc.derived_features.push(...references.Derives_from)
-    })
+    // feature.forEach((loc) => {
+    //   loc.derived_features.push(...references.Derives_from)
+    // })
     delete this._underConstructionOrphans[id]
   }
 
@@ -357,30 +358,30 @@ export default class Parser {
       }
     })
 
-    references.Derives_from.forEach((toId) => {
-      const otherFeature = this._underConstructionById[toId]
-      if (otherFeature) {
-        const pname = containerAttributes.Derives_from
-        if (
-          !ids.filter((id) =>
-            postSet(this._completedReferences, id, `Derives_from,${toId}`),
-          ).length
-        ) {
-          otherFeature.forEach((location) => {
-            location[pname].push(feature)
-          })
-        }
-      } else {
-        let ref = this._underConstructionOrphans[toId]
-        if (!ref) {
-          ref = {
-            Parent: [],
-            Derives_from: [],
-          }
-          this._underConstructionOrphans[toId] = ref
-        }
-        ref.Derives_from.push(feature)
-      }
-    })
+    // references.Derives_from.forEach((toId) => {
+    //   const otherFeature = this._underConstructionById[toId]
+    //   if (otherFeature) {
+    //     const pname = containerAttributes.Derives_from
+    //     if (
+    //       !ids.filter((id) =>
+    //         postSet(this._completedReferences, id, `Derives_from,${toId}`),
+    //       ).length
+    //     ) {
+    //       otherFeature.forEach((location) => {
+    //         location[pname].push(feature)
+    //       })
+    //     }
+    //   } else {
+    //     let ref = this._underConstructionOrphans[toId]
+    //     if (!ref) {
+    //       ref = {
+    //         Parent: [],
+    //         Derives_from: [],
+    //       }
+    //       this._underConstructionOrphans[toId] = ref
+    //     }
+    //     ref.Derives_from.push(feature)
+    //   }
+    // })
   }
 }
