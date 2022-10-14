@@ -129,7 +129,7 @@ describe('GFF3 parser', () => {
     expect(mrnaLines[2].child_features).toHaveLength(6)
 
     const referenceResult = JSON.parse(
-      fs.readFileSync('./data/spec_eden.result.json', 'utf8'),
+      fs.readFileSync(require.resolve('./data/spec_eden.result.json'), 'utf8'),
     )
     expect(stuff.all).toEqual(referenceResult)
   })
@@ -140,16 +140,15 @@ describe('GFF3 parser', () => {
     expect(stuff.all).toHaveLength(2)
   })
 
-  xit('can parse an excerpt of the TAIR10 gff3', async () => {
+  it('can parse an excerpt of the TAIR10 gff3', async () => {
     const stuff = await readAll('./data/tair10.gff3')
-    console.log(stuff.all)
     expect(stuff.all).toHaveLength(3)
   })
 
-  it('can parse full TAIR10 gff3', async () => {
-    const stuff = await readAll('./data/tair10_full.gff')
-    console.log({ stuff })
-  }, 1500000)
+  it('can parse chr1 TAIR10 gff3', async () => {
+    const stuff = await readAll('./data/tair10_chr1.gff')
+    expect(stuff.all).toHaveLength(8434)
+  })
 
   // check that some files throw a parse error
   ;['mm9_sample_ensembl.gff3', 'Saccharomyces_cerevisiae_EF3_e64.gff3'].forEach(

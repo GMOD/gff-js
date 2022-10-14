@@ -5,6 +5,22 @@ const containerAttributes = {
   Derives_from: 'derived_features' as const,
 }
 
+// this is all a bit more awkward in javascript than it was in perl
+function postSet(
+  obj: Record<string, Record<string, boolean | undefined> | undefined>,
+  slot1: string,
+  slot2: string,
+) {
+  let subObj = obj[slot1]
+  if (!subObj) {
+    subObj = {}
+    obj[slot1] = subObj
+  }
+  const returnVal = subObj[slot2] || false
+  subObj[slot2] = true
+  return returnVal
+}
+
 export class FASTAParser {
   seqCallback: (sequence: GFF3.GFF3Sequence) => void
   currentSequence:
@@ -44,7 +60,6 @@ interface ParserArgs {
   directiveCallback?(directive: GFF3.GFF3Directive): void
   sequenceCallback?(sequence: GFF3.GFF3Sequence): void
   bufferSize?: number
-  strictDerives?: boolean
 }
 
 interface References {
@@ -66,7 +81,6 @@ export default class Parser {
   // set when the file switches over to FASTA
   eof = false
   lineNumber = 0
-  strictDerives = false
   // features that we have to keep on hand for now because they
   // might be referenced by something else
   private _underConstructionTopLevel: GFF3.GFF3Feature[] = []
@@ -85,6 +99,10 @@ export default class Parser {
   //    }
   // }
   private _underConstructionOrphans: Record<string, References | undefined> = {}
+  private _underConstructionDerivedOrphans: Record<
+    string,
+    References | undefined
+  > = {}
 
   constructor(args: ParserArgs) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -96,7 +114,6 @@ export default class Parser {
     this.errorCallback = args.errorCallback || nullFunc
     this.directiveCallback = args.directiveCallback || nullFunc
     this.sequenceCallback = args.sequenceCallback || nullFunc
-    this.strictDerives = args.strictDerives ?? false
 
     // number of lines to buffer
     this.bufferSize = 10000 //args.bufferSize === undefined ? 100000 : args.bufferSize
@@ -185,8 +202,8 @@ export default class Parser {
         item.forEach((i) => {
           if (i.child_features)
             i.child_features.forEach((c) => _unbufferItem(c))
-          // if (i.derived_features)
-          //   i.derived_features.forEach((d) => _unbufferItem(d))
+          if (i.derived_features)
+            i.derived_features.forEach((d) => _unbufferItem(d))
         })
       }
     }
@@ -210,6 +227,11 @@ export default class Parser {
   private _emitAllUnderConstructionFeatures() {
     this._underConstructionTopLevel.forEach(this._emitItem.bind(this))
 
+    // output orphan derives from
+    Object.values(this._underConstructionDerivedOrphans).forEach((f) =>
+      f?.Derives_from.forEach((f2) => this._emitItem(f2)),
+    )
+
     this._underConstructionTopLevel = []
     this._underConstructionById = {}
     this._completedReferences = {}
@@ -218,13 +240,9 @@ export default class Parser {
     // problem. die with a parse error
     if (Array.from(Object.values(this._underConstructionOrphans)).length) {
       throw new Error(
-        `some features reference other features that do not exist in the file (or in the same '###' scope). ${JSON.stringify(
+        `some features reference other features that do not exist in the file (or in the same '###' scope). ${Object.keys(
           this._underConstructionOrphans,
-          null,
-          2,
-        ).slice(0, 2000)} ${Object.keys(
-          this._underConstructionOrphans,
-        )} ll ${JSON.stringify(this._completedReferences, null, 2)}`,
+        )}.  Check if the above IDs exists in file, and if it does exist, increase buffer size and/or add ### lines to file (checkpoints)`,
       )
     }
   }
@@ -242,9 +260,9 @@ export default class Parser {
     // NOTE: a feature is an arrayref of one or more feature lines.
     const ids = featureLine.attributes?.ID || []
     const parents = featureLine.attributes?.Parent || []
-    // const derives = featureLine.attributes?.Derives_from || []
+    const derives = featureLine.attributes?.Derives_from || []
 
-    if (!ids.length && !parents.length) {
+    if (!ids.length && !parents.length && !derives.length) {
       // if it has no IDs and does not refer to anything, we can just
       // output it
       this._emitItem([featureLine])
@@ -271,7 +289,7 @@ export default class Parser {
         feature = [featureLine]
 
         this._enforceBufferSizeLimit(1)
-        if (!parents.length) {
+        if (!parents.length && !derives.length) {
           this._underConstructionTopLevel.push(feature)
         }
         this._underConstructionById[id] = feature
@@ -282,11 +300,8 @@ export default class Parser {
     })
 
     // try to resolve all its references
-    this._resolveReferencesFrom(
-      feature || [featureLine],
-      { Parent: parents, Derives_from: [] },
-      ids,
-    )
+    this._resolveReferencesFrom(feature || [featureLine], parents, ids)
+    this._resolveReferencesFromDerives(feature || [featureLine], derives, ids)
   }
 
   private _resolveReferencesTo(feature: GFF3.GFF3Feature, id: string) {
@@ -296,14 +311,20 @@ export default class Parser {
     //     'Parent' : [ orphans that have a Parent attr referencing this feature ],
     //     'Derives_from' : [ orphans that have a Derives_from attr referencing this feature ],
     //    }
-    if (!references) return
-    feature.forEach((loc) => {
-      loc.child_features.push(...references.Parent)
-    })
-    // feature.forEach((loc) => {
-    //   loc.derived_features.push(...references.Derives_from)
-    // })
-    delete this._underConstructionOrphans[id]
+    if (references) {
+      feature.forEach((loc) => {
+        loc.child_features.push(...references.Parent)
+      })
+      delete this._underConstructionOrphans[id]
+    }
+
+    const references2 = this._underConstructionDerivedOrphans[id]
+    if (references2) {
+      feature.forEach((loc) => {
+        loc.derived_features.push(...references2.Derives_from)
+      })
+      delete this._underConstructionDerivedOrphans[id]
+    }
   }
 
   private _parseError(message: string) {
@@ -313,26 +334,10 @@ export default class Parser {
 
   private _resolveReferencesFrom(
     feature: GFF3.GFF3Feature,
-    references: { Parent: string[]; Derives_from: string[] },
+    parent: string[],
     ids: string[],
   ) {
-    // this is all a bit more awkward in javascript than it was in perl
-    function postSet(
-      obj: Record<string, Record<string, boolean | undefined> | undefined>,
-      slot1: string,
-      slot2: string,
-    ) {
-      let subObj = obj[slot1]
-      if (!subObj) {
-        subObj = {}
-        obj[slot1] = subObj
-      }
-      const returnVal = subObj[slot2] || false
-      subObj[slot2] = true
-      return returnVal
-    }
-
-    references.Parent.forEach((toId) => {
+    parent.forEach((toId) => {
       const otherFeature = this._underConstructionById[toId]
       if (otherFeature) {
         const pname = containerAttributes.Parent
@@ -357,31 +362,36 @@ export default class Parser {
         ref.Parent.push(feature)
       }
     })
-
-    // references.Derives_from.forEach((toId) => {
-    //   const otherFeature = this._underConstructionById[toId]
-    //   if (otherFeature) {
-    //     const pname = containerAttributes.Derives_from
-    //     if (
-    //       !ids.filter((id) =>
-    //         postSet(this._completedReferences, id, `Derives_from,${toId}`),
-    //       ).length
-    //     ) {
-    //       otherFeature.forEach((location) => {
-    //         location[pname].push(feature)
-    //       })
-    //     }
-    //   } else {
-    //     let ref = this._underConstructionOrphans[toId]
-    //     if (!ref) {
-    //       ref = {
-    //         Parent: [],
-    //         Derives_from: [],
-    //       }
-    //       this._underConstructionOrphans[toId] = ref
-    //     }
-    //     ref.Derives_from.push(feature)
-    //   }
-    // })
+  }
+  private _resolveReferencesFromDerives(
+    feature: GFF3.GFF3Feature,
+    derives: string[],
+    ids: string[],
+  ) {
+    derives.forEach((toId) => {
+      const otherFeature = this._underConstructionById[toId]
+      if (otherFeature) {
+        const pname = containerAttributes.Derives_from
+        if (
+          !ids.filter((id) =>
+            postSet(this._completedReferences, id, `Derives_from,${toId}`),
+          ).length
+        ) {
+          otherFeature.forEach((location) => {
+            location[pname].push(feature)
+          })
+        }
+      } else {
+        let ref = this._underConstructionDerivedOrphans[toId]
+        if (!ref) {
+          ref = {
+            Parent: [],
+            Derives_from: [],
+          }
+          this._underConstructionDerivedOrphans[toId] = ref
+        }
+        ref.Derives_from.push(feature)
+      }
+    })
   }
 }
