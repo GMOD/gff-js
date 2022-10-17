@@ -466,6 +466,7 @@ export function parseStringSync(
     directiveCallback: options.parseDirectives ? push : undefined,
     commentCallback: options.parseComments ? push : undefined,
     sequenceCallback: options.parseSequences ? push : undefined,
+    disableDerivesFromReferences: options.disableDerivesFromReferences || false,
     bufferSize: Infinity,
     errorCallback: (err) => {
       throw err
