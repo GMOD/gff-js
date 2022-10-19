@@ -44,6 +44,7 @@ interface ParserArgs {
   directiveCallback?(directive: GFF3.GFF3Directive): void
   sequenceCallback?(sequence: GFF3.GFF3Sequence): void
   bufferSize?: number
+  disableDerivesFromReferences?: boolean
 }
 
 interface References {
@@ -56,6 +57,7 @@ export default class Parser {
   endCallback: () => void
   commentCallback: (comment: GFF3.GFF3Comment) => void
   errorCallback: (error: string) => void
+  disableDerivesFromReferences: boolean
   directiveCallback: (directive: GFF3.GFF3Directive) => void
   sequenceCallback: (sequence: GFF3.GFF3Sequence) => void
   bufferSize: number
@@ -94,6 +96,8 @@ export default class Parser {
     this.errorCallback = args.errorCallback || nullFunc
     this.directiveCallback = args.directiveCallback || nullFunc
     this.sequenceCallback = args.sequenceCallback || nullFunc
+    this.disableDerivesFromReferences =
+      args.disableDerivesFromReferences || false
 
     // number of lines to buffer
     this.bufferSize = args.bufferSize === undefined ? 1000 : args.bufferSize
@@ -221,7 +225,7 @@ export default class Parser {
     // problem. die with a parse error
     if (Array.from(Object.values(this._underConstructionOrphans)).length) {
       throw new Error(
-        `some features reference other features that do not exist in the file (or in the same '###' scope). ${JSON.stringify(
+        `some features reference other features that do not exist in the file (or in the same '###' scope). ${Object.keys(
           this._underConstructionOrphans,
         )}`,
       )
@@ -241,7 +245,9 @@ export default class Parser {
     // NOTE: a feature is an arrayref of one or more feature lines.
     const ids = featureLine.attributes?.ID || []
     const parents = featureLine.attributes?.Parent || []
-    const derives = featureLine.attributes?.Derives_from || []
+    const derives = this.disableDerivesFromReferences
+      ? []
+      : featureLine.attributes?.Derives_from || []
 
     if (!ids.length && !parents.length && !derives.length) {
       // if it has no IDs and does not refer to anything, we can just

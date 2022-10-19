@@ -16,7 +16,10 @@ interface ReadAllResults {
   all: (GFF3Feature | GFF3Comment | GFF3Directive | GFF3Sequence)[]
 }
 
-function readAll(filename: string): Promise<ReadAllResults> {
+function readAll(
+  filename: string,
+  args: Record<string, unknown> = {},
+): Promise<ReadAllResults> {
   return new Promise((resolve, reject) => {
     const stuff: ReadAllResults = {
       features: [],
@@ -35,6 +38,7 @@ function readAll(filename: string): Promise<ReadAllResults> {
           parseComments: true,
           parseSequences: true,
           bufferSize: 10,
+          ...args,
         }),
       )
       .on('data', (d) => {
@@ -142,8 +146,14 @@ describe('GFF3 parser', () => {
 
   it('can parse an excerpt of the TAIR10 gff3', async () => {
     const stuff = await readAll('./data/tair10.gff3')
-    expect(true).toBeTruthy()
     expect(stuff.all).toHaveLength(3)
+  })
+
+  it('can parse chr1 TAIR10 gff3', async () => {
+    const stuff = await readAll('./data/tair10_chr1.gff', {
+      disableDerivesFromReferences: true,
+    })
+    expect(stuff.all).toHaveLength(17697)
   })
 
   // check that some files throw a parse error
