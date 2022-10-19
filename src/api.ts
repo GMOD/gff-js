@@ -156,12 +156,19 @@ export function parseStream(options: ParseOptions = {}): GFFTransform {
  */
 export function parseStringSync(
   str: string,
-  inputOptions?: { encoding?: BufferEncoding; bufferSize?: number } | undefined,
+  inputOptions?:
+    | {
+        disableDerivesFromReferences?: boolean
+        encoding?: BufferEncoding
+        bufferSize?: number
+      }
+    | undefined,
 ): (GFF3Feature | GFF3Sequence)[]
 export function parseStringSync<T extends boolean>(
   str: string,
   inputOptions: {
     parseAll?: T
+    disableDerivesFromReferences?: boolean
     encoding?: BufferEncoding
     bufferSize?: number
   },
@@ -169,6 +176,7 @@ export function parseStringSync<T extends boolean>(
 export function parseStringSync<F extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     encoding?: BufferEncoding
     bufferSize?: number
@@ -177,6 +185,7 @@ export function parseStringSync<F extends boolean>(
 export function parseStringSync<D extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseDirectives: D
     encoding?: BufferEncoding
     bufferSize?: number
@@ -197,6 +206,7 @@ export function parseStringSync<C extends boolean>(
 export function parseStringSync<S extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseSequences: S
     encoding?: BufferEncoding
     bufferSize?: number
@@ -205,6 +215,7 @@ export function parseStringSync<S extends boolean>(
 export function parseStringSync<F extends boolean, D extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseDirectives: D
     encoding?: BufferEncoding
@@ -220,6 +231,7 @@ export function parseStringSync<F extends boolean, D extends boolean>(
 export function parseStringSync<F extends boolean, C extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseComments: C
     encoding?: BufferEncoding
@@ -235,6 +247,7 @@ export function parseStringSync<F extends boolean, C extends boolean>(
 export function parseStringSync<F extends boolean, S extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseSequences: S
     encoding?: BufferEncoding
@@ -250,6 +263,7 @@ export function parseStringSync<F extends boolean, S extends boolean>(
 export function parseStringSync<D extends boolean, C extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseDirectives: D
     parseComments: C
     encoding?: BufferEncoding
@@ -265,6 +279,7 @@ export function parseStringSync<D extends boolean, C extends boolean>(
 export function parseStringSync<D extends boolean, S extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseDirectives: D
     parseSequences: S
     encoding?: BufferEncoding
@@ -280,6 +295,7 @@ export function parseStringSync<D extends boolean, S extends boolean>(
 export function parseStringSync<C extends boolean, S extends boolean>(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseComments: C
     parseSequences: S
     encoding?: BufferEncoding
@@ -299,6 +315,7 @@ export function parseStringSync<
 >(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseDirectives: D
     parseComments: C
@@ -327,6 +344,7 @@ export function parseStringSync<
 >(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseDirectives: D
     parseSequences: S
@@ -355,6 +373,7 @@ export function parseStringSync<
 >(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseComments: C
     parseSequences: S
@@ -383,6 +402,7 @@ export function parseStringSync<
 >(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: D
     parseComments: C
     parseSequences: S
@@ -412,6 +432,7 @@ export function parseStringSync<
 >(
   str: string,
   inputOptions: {
+    disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseDirectives: D
     parseComments: C
