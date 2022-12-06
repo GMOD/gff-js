@@ -33,7 +33,7 @@
     "docs:format": "prettier --write README.md",
     "prebuild": "npm-run-all clean",
     "build:esm": "tsc --target es2018 --outDir esm",
-    "build:es5": "tsc --target es5 --outDir dist",
+    "build:es5": "tsc --target es2015 --module commonjs --outDir dist",
     "build": "npm-run-all --parallel build:*",
     "prepublishOnly": "npm-run-all test build",
     "postversion": "git push --follow-tags"
