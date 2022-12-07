@@ -1,15 +1,21 @@
 # @gmod/gff
 
-[![Build Status](https://img.shields.io/github/workflow/status/GMOD/gff-js/Push/master?logo=github&style=for-the-badge)](https://github.com/GMOD/gff-js/actions?query=branch%3Amaster+workflow%3APush+)
+[![Build
+Status](https://img.shields.io/github/workflow/status/GMOD/gff-js/Push/master?logo=github&style=for-the-badge)](https://github.com/GMOD/gff-js/actions?query=branch%3Amaster+workflow%3APush+)
 
-Read and write GFF3 data performantly. This module aims to be a complete implementation of the [GFF3 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md).
+Read and write GFF3 data performantly. This module aims to be a complete
+implementation of the [GFF3
+specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md).
 
 - streaming parsing and streaming formatting
 - proper escaping and unescaping of attribute and column values
 - supports features with multiple locations and features with multiple parents
-- reconstructs feature hierarchies of both `Parent` and `Derives_from` relationships
+- reconstructs feature hierarchies of both `Parent` and `Derives_from`
+  relationships
 - parses FASTA sections
-- does no validation except for referential integrity of `Parent` and `Derives_from` relationships
+- does no validation except for referential integrity of `Parent` and
+  `Derives_from` relationships (can disable Derives_from reference checking
+  with `disableDerivesFromReferences`)
 - only compatible with GFF3
 
 ## Install
@@ -87,12 +93,8 @@ A simple feature that's located in just one place:
     "strand": "+",
     "phase": null,
     "attributes": {
-      "ID": [
-        "gene00001"
-      ],
-      "Name": [
-        "EDEN"
-      ]
+      "ID": ["gene00001"],
+      "Name": ["EDEN"]
     },
     "child_features": [],
     "derived_features": []
@@ -179,13 +181,12 @@ These come from any embedded `##FASTA` section in the GFF3 file.
 ```js
 parseSequences(`##FASTA
 >ctgA test contig
-ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)
-// returns
-[
+ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)[
+  // returns
   {
-    "id": "ctgA",
-    "description": "test contig",
-    "sequence": "ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA"
+    id: 'ctgA',
+    description: 'test contig',
+    sequence: 'ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA',
   }
 ]
 ```
@@ -197,6 +198,7 @@ ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)
 #### Table of Contents
 
 - [ParseOptions](#parseoptions)
+  - [disableDerivesFromReferences](#disablederivesfromreferences)
   - [encoding](#encoding)
   - [parseFeatures](#parsefeatures)
   - [parseDirectives](#parsedirectives)
@@ -218,6 +220,12 @@ ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)
 ### ParseOptions
 
 Parser options
+
+#### disableDerivesFromReferences
+
+Whether to resolve references to derives from features
+
+Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 #### encoding
 
@@ -281,7 +289,7 @@ parsed items.
 #### Parameters
 
 - `str` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** GFF3 string
-- `inputOptions` **({encoding: BufferEncoding?, bufferSize: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
+- `inputOptions` **({disableDerivesFromReferences: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?, encoding: BufferEncoding?, bufferSize: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<(GFF3Feature | GFF3Sequence)>** array of parsed features, directives, comments and/or sequences
 
