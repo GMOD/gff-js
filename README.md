@@ -1,7 +1,6 @@
 # @gmod/gff
 
-[![Build
-Status](https://img.shields.io/github/workflow/status/GMOD/gff-js/Push/master?logo=github&style=for-the-badge)](https://github.com/GMOD/gff-js/actions?query=branch%3Amaster+workflow%3APush+)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/GMOD/gff-js/push.yml?branch=master&logo=github&style=for-the-badge)](https://github.com/GMOD/gff-js/actions?query=branch%3Amaster+workflow%3APush+)
 
 Read and write GFF3 data performantly. This module aims to be a complete
 implementation of the [GFF3
