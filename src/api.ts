@@ -96,17 +96,17 @@ class GFFTransform extends Transform {
     })
   }
 
-  private _addLine(data: string | undefined) {
+  private addLine(data: string | undefined) {
     if (data) {
       this.parser.addLine(data)
     }
   }
 
-  private _nextText(buffer: string) {
+  private nextText(buffer: string) {
     const pieces = (this.textBuffer + buffer).split(/\r?\n/)
     this.textBuffer = pieces.pop() || ''
 
-    pieces.forEach((piece) => this._addLine(piece))
+    pieces.forEach((piece) => this.addLine(piece))
   }
 
   _transform(
@@ -114,16 +114,16 @@ class GFFTransform extends Transform {
     _encoding: BufferEncoding,
     callback: TransformCallback,
   ) {
-    this._nextText(this.decoder.write(chunk))
+    this.nextText(this.decoder.write(chunk))
     _callback(callback)
   }
 
   _flush(callback: TransformCallback) {
     if (this.decoder.end) {
-      this._nextText(this.decoder.end())
+      this.nextText(this.decoder.end())
     }
     if (this.textBuffer != null) {
-      this._addLine(this.textBuffer)
+      this.addLine(this.textBuffer)
     }
     this.parser.finish()
     _callback(callback)
