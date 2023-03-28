@@ -52,7 +52,7 @@ export function parseAttributes(attrString: string): GFF3Attributes {
   const attrs: GFF3Attributes = {}
 
   attrString
-    .replace(/\r?\n$/, '')
+    .replace(/\r\n|[\r\n]$/, '')
     .split(';')
     .forEach((a) => {
       const nv = a.split('=', 2)
@@ -121,7 +121,7 @@ export function parseDirective(
 
   const parsed: GFF3Directive = { directive: name }
   if (contents.length) {
-    contents = contents.replace(/\r?\n$/, '')
+    contents = contents.replace(/\r\n|[\r\n]$/, '')
     parsed.value = contents
   }
 

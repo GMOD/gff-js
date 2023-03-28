@@ -494,7 +494,7 @@ export function parseStringSync(
     },
   })
 
-  str.split(/\r?\n/).forEach(parser.addLine.bind(parser))
+  str.split(/\r\n|[\r\n]/).forEach(parser.addLine.bind(parser))
   parser.finish()
 
   return items

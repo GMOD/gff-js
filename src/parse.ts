@@ -154,7 +154,7 @@ export default class Parser {
       this.fastaParser.addLine(line)
     } else {
       // it's a parse error
-      const errLine = line.replace(/\r?\n?$/g, '')
+      const errLine = line.replace(/\r\n|[\r\n]$/g, '')
       throw new Error(`GFF3 parse error.  Cannot parse '${errLine}'.`)
     }
   }
