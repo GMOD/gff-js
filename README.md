@@ -32,8 +32,7 @@ import gff from '@gmod/gff'
 
 const fs = require('fs')
 
-// parse a file from a file name
-// parses only features and sequences by default,
+// parse a file from a file name. parses only features and sequences by default,
 // set options to parse directives and/or comments
 fs.createReadStream('path/to/my/file.gff3')
   .pipe(gff.parseStream({ parseAll: true }))
@@ -56,16 +55,14 @@ const arrayOfThings = gff.parseStringSync(stringOfGFF3)
 // format an array of items to a string
 const newStringOfGFF3 = gff.formatSync(arrayOfThings)
 
-// format a stream of things to a stream of text.
-// inserts sync marks automatically.
+// format a stream of things to a stream of text. inserts sync marks
+// automatically.
 myStreamOfGFF3Objects
   .pipe(gff.formatStream())
   .pipe(fs.createWriteStream('my_new.gff3'))
 
-// format a stream of things and write it to
-// a gff3 file. inserts sync marks and a
-// '##gff-version 3' header if one is not
-// already present
+// format a stream of things and write it to a gff3 file. inserts sync marks and
+// a '##gff-version 3' header if one is not already present
 gff.formatFile(
   myStreamOfGFF3Objects,
   fs.createWriteStream('my_new_2.gff3', { encoding: 'utf8' }),

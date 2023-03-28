@@ -546,8 +546,8 @@ class FormattingTransform extends Transform {
     _encoding: BufferEncoding,
     callback: TransformCallback,
   ) {
-    // if we have not emitted anything yet, and this first
-    // chunk is not a gff-version directive, emit one
+    // if we have not emitted anything yet, and this first chunk is not a
+    // gff-version directive, emit one
     if (!this.haveWeEmittedData && this.insertVersionDirective) {
       const thisChunk = Array.isArray(chunk) ? chunk[0] : chunk
       if ('directive' in thisChunk) {
@@ -557,8 +557,8 @@ class FormattingTransform extends Transform {
       }
     }
 
-    // if it's a sequence chunk coming down, emit a FASTA directive and
-    // change to FASTA mode
+    // if it's a sequence chunk coming down, emit a FASTA directive and change
+    // to FASTA mode
     if ('sequence' in chunk && !this.fastaMode) {
       this.push('##FASTA\n')
       this.fastaMode = true
@@ -606,8 +606,8 @@ export function formatStream(options: FormatOptions = {}): FormattingTransform {
  * Format a stream of features, directives, comments and/or sequences into a
  * GFF3 file and write it to the filesystem.
 
- * Inserts synchronization (###) marks and a ##gff-version
- * directive automatically (if one is not already present).
+ * Inserts synchronization (###) marks and a ##gff-version directive
+ * automatically (if one is not already present).
  *
  * @param stream - the stream to write to the file
  * @param filename - the file path to write to

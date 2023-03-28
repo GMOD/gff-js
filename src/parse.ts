@@ -66,13 +66,12 @@ export default class Parser {
   sequenceCallback: (sequence: GFF3.GFF3Sequence) => void
   bufferSize: number
   fastaParser: FASTAParser | undefined = undefined
-  // if this is true, the parser ignores the
-  // rest of the lines in the file.  currently
-  // set when the file switches over to FASTA
+  // if this is true, the parser ignores the  rest of the lines in the file.
+  // currently set when the file switches over to FASTA
   eof = false
   lineNumber = 0
-  // features that we have to keep on hand for now because they
-  // might be referenced by something else
+  // features that we have to keep on hand for now because they might be
+  // referenced by something else
   private _underConstructionTopLevel: GFF3.GFF3Feature[] = []
   // index of the above by ID
   private _underConstructionById: Record<string, GFF3.GFF3Feature | undefined> =
@@ -81,8 +80,7 @@ export default class Parser {
     string,
     Record<string, boolean | undefined> | undefined
   > = {}
-  // features that reference something we have not seen yet
-  // structured as:
+  // features that reference something we have not seen yet. structured as:
   // {  'some_id' : {
   //     'Parent' : [ orphans that have a Parent attr referencing it ],
   //     'Derives_from' : [ orphans that have a Derives_from attr referencing it ],
@@ -217,8 +215,8 @@ export default class Parser {
   }
 
   /**
-   * return all under-construction features, called when we know
-   * there will be no additional data to attach to them
+   * return all under-construction features, called when we know there will be
+   * no additional data to attach to them
    */
   private _emitAllUnderConstructionFeatures() {
     this._underConstructionTopLevel.forEach(this._emitItem.bind(this))
@@ -227,8 +225,8 @@ export default class Parser {
     this._underConstructionById = {}
     this._completedReferences = {}
 
-    // if we have any orphans hanging around still, this is a
-    // problem. die with a parse error
+    // if we have any orphans hanging around still, this is a problem. die with
+    // a parse error
     if (Array.from(Object.values(this._underConstructionOrphans)).length) {
       throw new Error(
         `some features reference other features that do not exist in the file (or in the same '###' scope). ${Object.keys(
@@ -256,8 +254,7 @@ export default class Parser {
       : featureLine.attributes?.Derives_from || []
 
     if (!ids.length && !parents.length && !derives.length) {
-      // if it has no IDs and does not refer to anything, we can just
-      // output it
+      // if it has no IDs and does not refer to anything, we can just output it
       this._emitItem([featureLine])
       return
     }
@@ -277,8 +274,8 @@ export default class Parser {
         existing.push(featureLine)
         feature = existing
       } else {
-        // haven't seen it yet, so buffer it so we can attach
-        // child features to it
+        // haven't seen it yet, so buffer it so we can attach child features to
+        // it
         feature = [featureLine]
 
         this._enforceBufferSizeLimit(1)
