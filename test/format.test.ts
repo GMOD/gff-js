@@ -13,13 +13,16 @@ describe('GFF3 formatting', () => {
   ;['spec_eden', 'au9_scaffold_subset', 'hybrid1', 'hybrid2'].forEach(
     (file) => {
       it(`can roundtrip ${file}.gff3 with formatSync`, () => {
-        const inputGFF3 = fs
-          .readFileSync(require.resolve(`./data/${file}.gff3`))
-          .toString('utf8')
+        const inputGFF3 = fs.readFileSync(
+          require.resolve(`./data/${file}.gff3`),
+          'utf8',
+        )
 
         const expectedGFF3 = fs
-          .readFileSync(require.resolve(`./data/${file}.reformatted.gff3`))
-          .toString('utf8')
+          .readFileSync(
+            require.resolve(`./data/${file}.reformatted.gff3`),
+            'utf8',
+          )
           .replaceAll('###\n', '') // formatSync does not insert sync marks
 
         const items = gff.parseStringSync(inputGFF3, { parseAll: true })
@@ -28,9 +31,10 @@ describe('GFF3 formatting', () => {
       })
 
       it(`can roundtrip ${file}.gff3 with formatStream`, async () => {
-        const expectedGFF3 = (
-          await readfile(require.resolve(`./data/${file}.reformatted.gff3`))
-        ).toString('utf8')
+        const expectedGFF3 = await readfile(
+          require.resolve(`./data/${file}.reformatted.gff3`),
+          'utf8',
+        )
 
         const resultGFF3 = await getStream(
           fs
@@ -63,11 +67,12 @@ describe('GFF3 formatting', () => {
         await gff.formatFile(gff3In, fs.createWriteStream(tmpFile.path))
         await fdatasync(tmpFile.fd)
 
-        const resultGFF3 = (await readfile(tmpFile.path)).toString('utf8')
+        const resultGFF3 = await readfile(tmpFile.path, 'utf8')
 
-        const expectedGFF3 = (
-          await readfile(require.resolve(`./data/${file}.reformatted.gff3`))
-        ).toString('utf8')
+        const expectedGFF3 = await readfile(
+          require.resolve(`./data/${file}.reformatted.gff3`),
+          'utf8',
+        )
 
         expect(resultGFF3).toEqual(expectedGFF3)
       })

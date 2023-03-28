@@ -173,9 +173,10 @@ describe('GFF3 parser', () => {
   )
 
   it('can parse a string synchronously', () => {
-    const gff3 = fs
-      .readFileSync(require.resolve('./data/spec_eden.gff3'))
-      .toString('utf8')
+    const gff3 = fs.readFileSync(
+      require.resolve('./data/spec_eden.gff3'),
+      'utf8',
+    )
     const result = gff.parseStringSync(gff3, {
       parseFeatures: true,
       parseDirectives: true,
