@@ -17,6 +17,9 @@
   "bin": {
     "gff-to-json": "dist/gff-to-json.js"
   },
+  "engines": {
+    "node": ">=10"
+  },
   "files": [
     "dist",
     "esm",
@@ -50,7 +53,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.2.4",
-    "@types/node": "^18.11.16",
+    "@types/node": "^10.17.60",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
     "documentation": "^14.0.1",

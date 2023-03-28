@@ -1,4 +1,4 @@
-import fs from 'fs'
+import { createReadStream, promises as fsPromises } from 'fs'
 import gff from '../src'
 import {
   formatFeature,
@@ -30,7 +30,7 @@ function readAll(
     }
 
     // $p->max_lookback(1)
-    fs.createReadStream(require.resolve(filename))
+    createReadStream(require.resolve(filename))
       .pipe(
         gff.parseStream({
           parseFeatures: true,
@@ -59,7 +59,7 @@ describe('GFF3 parser', () => {
   it('can parse gff3_with_syncs.gff3', async () => {
     const stuff = await readAll('./data/gff3_with_syncs.gff3')
     const referenceResult = JSON.parse(
-      fs.readFileSync(
+      await fsPromises.readFile(
         require.resolve('./data/gff3_with_syncs.result.json'),
         'utf8',
       ),
@@ -92,7 +92,7 @@ describe('GFF3 parser', () => {
     const stuff = await readAll('./data/knownGene_out_of_order.gff3')
     // $p->max_lookback(2);
     const expectedOutput = JSON.parse(
-      fs.readFileSync(
+      await fsPromises.readFile(
         require.resolve('./data/knownGene_out_of_order.result.json'),
         'utf8',
       ),
@@ -133,7 +133,10 @@ describe('GFF3 parser', () => {
     expect(mrnaLines[2].child_features).toHaveLength(6)
 
     const referenceResult = JSON.parse(
-      fs.readFileSync(require.resolve('./data/spec_eden.result.json'), 'utf8'),
+      await fsPromises.readFile(
+        require.resolve('./data/spec_eden.result.json'),
+        'utf8',
+      ),
     )
     expect(stuff.all).toEqual(referenceResult)
   })
@@ -167,8 +170,8 @@ describe('GFF3 parser', () => {
     },
   )
 
-  it('can parse a string synchronously', () => {
-    const gff3 = fs.readFileSync(
+  it('can parse a string synchronously', async () => {
+    const gff3 = await fsPromises.readFile(
       require.resolve('./data/spec_eden.gff3'),
       'utf8',
     )
@@ -179,7 +182,10 @@ describe('GFF3 parser', () => {
     })
     expect(result).toHaveLength(3)
     const referenceResult = JSON.parse(
-      fs.readFileSync(require.resolve('./data/spec_eden.result.json'), 'utf8'),
+      await fsPromises.readFile(
+        require.resolve('./data/spec_eden.result.json'),
+        'utf8',
+      ),
     )
     expect(result).toEqual(referenceResult)
   })
