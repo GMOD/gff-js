@@ -515,7 +515,9 @@ export function formatSync(items: GFF3Item[]): string {
       other.push(i)
     }
   })
-  let str = other.map(formatItem).join('')
+  let str = other
+    .map((o) => (Array.isArray(o) ? formatItem(o).join('') : formatItem(o)))
+    .join('')
   if (sequences.length) {
     str += '##FASTA\n'
     str += sequences.map(formatSequence).join('')
@@ -565,7 +567,7 @@ class FormattingTransform extends Transform {
     }
 
     const str = Array.isArray(chunk)
-      ? chunk.map(formatItem).join('')
+      ? chunk.map((c) => formatItem(c)).join('')
       : formatItem(chunk)
 
     this.push(str)

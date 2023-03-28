@@ -287,6 +287,24 @@ export function formatSequence(seq: GFF3Sequence): string {
   }\n`
 }
 
+function formatSingleItem(
+  item: GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence,
+) {
+  if ('attributes' in item) {
+    return formatFeature(item)
+  }
+  if ('directive' in item) {
+    return formatDirective(item)
+  }
+  if ('sequence' in item) {
+    return formatSequence(item)
+  }
+  if ('comment' in item) {
+    return formatComment(item)
+  }
+  return '# (invalid item found during format)\n'
+}
+
 /**
  * Format a directive, comment, sequence, or feature, or array of such items,
  * into one or more lines of GFF3.
@@ -295,31 +313,24 @@ export function formatSequence(seq: GFF3Sequence): string {
  * @returns A formatted string or array of strings
  */
 export function formatItem(
+  item: GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence,
+): string
+export function formatItem(
+  items: (
+    | GFF3FeatureLineWithRefs
+    | GFF3Directive
+    | GFF3Comment
+    | GFF3Sequence
+  )[],
+): string[]
+export function formatItem(
   itemOrItems:
     | GFF3FeatureLineWithRefs
     | GFF3Directive
     | GFF3Comment
     | GFF3Sequence
     | (GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence)[],
-): string | string[] {
-  function formatSingleItem(
-    item: GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence,
-  ) {
-    if ('attributes' in item) {
-      return formatFeature(item)
-    }
-    if ('directive' in item) {
-      return formatDirective(item)
-    }
-    if ('sequence' in item) {
-      return formatSequence(item)
-    }
-    if ('comment' in item) {
-      return formatComment(item)
-    }
-    return '# (invalid item found during format)\n'
-  }
-
+) {
   if (Array.isArray(itemOrItems)) {
     return itemOrItems.map(formatSingleItem)
   }
