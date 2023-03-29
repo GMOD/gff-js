@@ -1,4 +1,5 @@
-import { createReadStream, promises as fsPromises } from 'fs'
+import fsPromises from 'fs/promises'
+import { ReadableStream, TransformStream } from 'stream/web'
 import gff from '../src'
 import {
   formatFeature,
@@ -7,6 +8,7 @@ import {
   GFF3Comment,
   GFF3Sequence,
 } from '../src/util'
+import { FileSource } from './util'
 
 interface ReadAllResults {
   features: GFF3Feature[]
@@ -16,48 +18,43 @@ interface ReadAllResults {
   all: (GFF3Feature | GFF3Comment | GFF3Directive | GFF3Sequence)[]
 }
 
-function readAll(
+async function readAll(
   filename: string,
   args: Record<string, unknown> = {},
 ): Promise<ReadAllResults> {
-  return new Promise((resolve, reject) => {
-    const stuff: ReadAllResults = {
-      features: [],
-      comments: [],
-      directives: [],
-      sequences: [],
-      all: [],
-    }
+  const stuff: ReadAllResults = {
+    features: [],
+    comments: [],
+    directives: [],
+    sequences: [],
+    all: [],
+  }
 
-    // $p->max_lookback(1)
-    createReadStream(require.resolve(filename))
-      .pipe(
-        gff.parseStream({
-          parseFeatures: true,
-          parseDirectives: true,
-          parseComments: true,
-          parseSequences: true,
-          bufferSize: 10,
-          ...args,
-        }),
-      )
-      .on('data', (d) => {
-        stuff.all.push(d)
-        if (d.directive) {
-          stuff.directives.push(d)
-        } else if (d.comment) {
-          stuff.comments.push(d)
-        } else if (d.sequence) {
-          stuff.sequences.push(d)
-        } else {
-          stuff.features.push(d)
-        }
-      })
-      .on('end', () => {
-        resolve(stuff)
-      })
-      .on('error', reject)
-  })
+  const stream = new ReadableStream(new FileSource(require.resolve(filename)))
+  const transformStream = new TransformStream(
+    gff.parseStream({
+      parseFeatures: true,
+      parseDirectives: true,
+      parseComments: true,
+      parseSequences: true,
+      bufferSize: 10,
+      ...args,
+    }),
+  )
+  const gffStream = stream.pipeThrough(transformStream)
+  for await (const value of gffStream) {
+    stuff.all.push(value)
+    if ('directive' in value) {
+      stuff.directives.push(value)
+    } else if ('comment' in value) {
+      stuff.comments.push(value)
+    } else if ('sequence' in value) {
+      stuff.sequences.push(value)
+    } else {
+      stuff.features.push(value)
+    }
+  }
+  return stuff
 }
 
 describe('GFF3 parser', () => {
@@ -88,7 +85,6 @@ describe('GFF3 parser', () => {
   ].forEach(([count, filename]) => {
     it(`can cursorily parse ${filename}`, async () => {
       const stuff = await readAll(`./data/${filename}`)
-      //     $p->max_lookback(10);
       expect(stuff.all.length).toEqual(count)
     })
   })
@@ -162,7 +158,7 @@ describe('GFF3 parser', () => {
       disableDerivesFromReferences: true,
     })
     expect(stuff.all).toHaveLength(17697)
-  })
+  }, 10000)
 
   // check that some files throw a parse error
   ;['mm9_sample_ensembl.gff3', 'Saccharomyces_cerevisiae_EF3_e64.gff3'].forEach(
@@ -304,24 +300,5 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g0988
       const stuff = await readAll(`./data/${filename}`)
       expect(stuff.sequences).toEqual(expectedOutput)
     })
-  })
-
-  it('can be written to directly', async () => {
-    const items: GFF3Feature[] = await new Promise((resolve, reject) => {
-      const i: GFF3Feature[] = []
-      const stream = gff
-        .parseStream()
-        .on('data', (d) => i.push(d))
-        .on('end', () => resolve(i))
-        .on('error', reject)
-
-      stream.write(
-        `SL2.40ch00	ITAG_eugene	gene	16437	18189	.	+	.	Alias=Solyc00g005000;ID=gene:Solyc00g005000.2;Name=Solyc00g005000.2;from_BOGAS=1;length=1753\n`,
-      )
-      stream.end()
-    })
-
-    expect(items).toHaveLength(1)
-    expect(items[0][0].seq_id).toEqual('SL2.40ch00')
   })
 })

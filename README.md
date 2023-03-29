@@ -19,54 +19,109 @@ specification](https://github.com/The-Sequence-Ontology/Specifications/blob/mast
   with `disableDerivesFromReferences`)
 - only compatible with GFF3
 
+## Compatability
+
+Works in the browser and with Node.js v16 and up.
+
 ## Install
 
     $ npm install --save @gmod/gff
 
 ## Usage
 
-```js
-const gff = require('@gmod/gff').default
-// or in ES6 (recommended)
-import gff from '@gmod/gff'
+### Node.js example
 
-const fs = require('fs')
+```js
+import {
+  createReadStream,
+  createWriteStream,
+  readFileSync,
+  writeFileSync,
+} from 'fs'
+// Readable.toWeb and Writable.toWeb are only available in Node.js v18 and up
+// in Node.js 16, you'll have to provide your own stream source and sink
+import { Readable, Writable } from 'stream'
+// TransformStream is available without importing in Node.js v18 and up
+import { TransformStream } from 'stream/web'
+import {
+  formatSync,
+  parseStringSync,
+  GFFTransformer,
+  GFFFormattingTransformer,
+} from '@gmod/gff'
 
 // parse a file from a file name. parses only features and sequences by default,
 // set options to parse directives and/or comments
-fs.createReadStream('path/to/my/file.gff3')
-  .pipe(gff.parseStream({ parseAll: true }))
-  .on('data', (data) => {
-    if (data.directive) {
+;(async () => {
+  const readStream = createReadStream('/path/to/my/file.gff3')
+  const streamOfGFF3 = Readable.toWeb(readStream).pipeThrough(
+    new TransformStream(new GFFTransformer({ parseAll: true })),
+  )
+  for await (const data of streamOfGFF3) {
+    if ('directive' in data) {
       console.log('got a directive', data)
-    } else if (data.comment) {
+    } else if ('comment' in data) {
       console.log('got a comment', data)
-    } else if (data.sequence) {
+    } else if ('sequence' in data) {
       console.log('got a sequence from a FASTA section')
     } else {
       console.log('got a feature', data)
     }
-  })
+  }
 
-// parse a string of gff3 synchronously
-const stringOfGFF3 = fs.readFileSync('my_annotations.gff3').toString()
-const arrayOfThings = gff.parseStringSync(stringOfGFF3)
+  // parse a string of gff3 synchronously
+  const stringOfGFF3 = readFileSync('/path/to/my/file.gff3', 'utf8')
+  const arrayOfGFF3ITems = parseStringSync(stringOfGFF3)
 
-// format an array of items to a string
-const newStringOfGFF3 = gff.formatSync(arrayOfThings)
+  // format an array of items to a string
+  const newStringOfGFF3 = formatSync(arrayOfGFF3ITems)
+  writeFileSync('/path/to/new/file.gff3', newStringOfGFF3)
 
-// format a stream of things to a stream of text. inserts sync marks
-// automatically.
-myStreamOfGFF3Objects
-  .pipe(gff.formatStream())
-  .pipe(fs.createWriteStream('my_new.gff3'))
+  // read a file, format it, and write it to a new file. inserts sync marks and
+  // a '##gff-version 3' header if one is not already present
+  await Readable.toWeb(createReadStream('/path/to/my/file.gff3'))
+    .pipeThrough(new TransformStream(new GFFTransformer({ parseAll: true })))
+    .pipeThrough(new TransformStream(new GFFFormattingTransformer()))
+    .pipeTo(Writable.toWeb(createWriteStream('/path/to/my/file.gff3')))
+})()
+```
 
-// format a stream of things and write it to a gff3 file. inserts sync marks and
-// a '##gff-version 3' header if one is not already present
-gff.formatFile(
-  myStreamOfGFF3Objects,
-  fs.createWriteStream('my_new_2.gff3', { encoding: 'utf8' }),
-)
+### Browser example
+
+```js
+import { GFFTransformer } from '@gmod/gff'
+
+// parse a file from a URL. parses only features and sequences by default, set
+// options to parse directives and/or comments
+;(async () => {
+  const response = await fetch('http://example.com/file.gff3')
+  if (!response.ok) {
+    throw new Error('Bad response')
+  }
+  if (!response.body) {
+    throw new Error('No response body')
+  }
+  const reader = response.body
+    .pipeThrough(new TransformStream(new GFFTransformer({ parseAll: true })))
+    .getReader()
+  let result
+  do {
+    result = await reader.read()
+    if (result.done) {
+      continue
+    }
+    const data = result.value
+    if ('directive' in data) {
+      console.log('got a directive', data)
+    } else if ('comment' in data) {
+      console.log('got a comment', data)
+    } else if ('sequence' in data) {
+      console.log('got a sequence from a FASTA section')
+    } else {
+      console.log('got a feature', data)
+    }
+  } while (!result.done)
+})()
 ```
 
 ## Object format
@@ -204,16 +259,21 @@ ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)[
   - [parseSequences](#parsesequences)
   - [parseAll](#parseall)
   - [bufferSize](#buffersize)
-- [parseStream](#parsestream)
+- [GFFTransformer](#gfftransformer)
   - [Parameters](#parameters)
-- [parseStringSync](#parsestringsync)
+- [parseStream](#parsestream)
   - [Parameters](#parameters-1)
-- [formatSync](#formatsync)
+- [parseStringSync](#parsestringsync)
   - [Parameters](#parameters-2)
-- [formatStream](#formatstream)
+- [formatSync](#formatsync)
   - [Parameters](#parameters-3)
-- [formatFile](#formatfile)
+- [FormatOptions](#formatoptions)
+  - [minSyncLines](#minsynclines)
+  - [insertVersionDirective](#insertversiondirective)
+- [GFFFormattingTransformer](#gffformattingtransformer)
   - [Parameters](#parameters-4)
+- [formatStream](#formatstream)
+  - [Parameters](#parameters-5)
 
 ### ParseOptions
 
@@ -268,6 +328,15 @@ Maximum number of GFF3 lines to buffer, default 1000
 
 Type: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
+### GFFTransformer
+
+Parse a stream of text data into a stream of feature, directive, comment,
+an sequence objects.
+
+#### Parameters
+
+- `options` **[ParseOptions](#parseoptions)** Parser options (optional, default `{}`)
+
 ### parseStream
 
 Parse a stream of text data into a stream of feature, directive, comment,
@@ -277,7 +346,7 @@ an sequence objects.
 
 - `options` **[ParseOptions](#parseoptions)** Parsing options (optional, default `{}`)
 
-Returns **GFFTransform** stream (in objectMode) of parsed items
+Returns **[GFFTransformer](#gfftransformer)** stream (in objectMode) of parsed items
 
 ### parseStringSync
 
@@ -302,6 +371,35 @@ GFF3. Does not insert synchronization (###) marks.
 
 Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the formatted GFF3
 
+### FormatOptions
+
+Formatter options
+
+#### minSyncLines
+
+The minimum number of lines to emit between sync (###) directives, default
+100
+
+Type: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+#### insertVersionDirective
+
+Whether to insert a version directive at the beginning of a formatted
+stream if one does not exist already, default true
+
+Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### GFFFormattingTransformer
+
+Transform a stream of features, directives, comments and/or sequences into a
+stream of GFF3 text.
+
+Inserts synchronization (###) marks automatically.
+
+#### Parameters
+
+- `options` **[FormatOptions](#formatoptions)** Formatter options (optional, default `{}`)
+
 ### formatStream
 
 Format a stream of features, directives, comments and/or sequences into a
@@ -311,42 +409,21 @@ Inserts synchronization (###) marks automatically.
 
 #### Parameters
 
-- `options` **FormatOptions** parser options (optional, default `{}`)
+- `options` **[FormatOptions](#formatoptions)** parser options (optional, default `{}`)
 
-Returns **FormattingTransform**
-
-### formatFile
-
-Format a stream of features, directives, comments and/or sequences into a
-GFF3 file and write it to the filesystem.
-
-Inserts synchronization (###) marks and a ##gff-version
-directive automatically (if one is not already present).
-
-#### Parameters
-
-- `stream` **Readable** the stream to write to the file
-- `writeStream` **Writable**
-- `options` **FormatOptions** parser options (optional, default `{}`)
-- `filename` the file path to write to
-
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<null>** promise for null that resolves when the stream has been written
+Returns **[GFFFormattingTransformer](#gffformattingtransformer)**&#x20;
 
 ## About `util`
 
 There is also a `util` module that contains super-low-level functions for dealing with lines and parts of lines.
 
 ```js
-// non-ES6
-const util = require('@gmod/gff').default.util
-// or, with ES6
-import gff from '@gmod/gff'
-const util = gff.util
+import { util } from '@gmod/gff'
 
 const gff3Lines = util.formatItem({
   seq_id: 'ctgA',
   ...
-}))
+})
 ```
 
 ## util
@@ -532,9 +609,10 @@ into one or more lines of GFF3.
 
 #### Parameters
 
-- `itemOrItems` **([GFF3FeatureLineWithRefs](#gff3featurelinewithrefs) | [GFF3Directive](#gff3directive) | [GFF3Comment](#gff3comment) | [GFF3Sequence](#gff3sequence) | [Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<([GFF3FeatureLineWithRefs](#gff3featurelinewithrefs) | [GFF3Directive](#gff3directive) | [GFF3Comment](#gff3comment) | [GFF3Sequence](#gff3sequence))>)** A comment, sequence, or feature, or array of such items
+- `item` **([GFF3FeatureLineWithRefs](#gff3featurelinewithrefs) | [GFF3Directive](#gff3directive) | [GFF3Comment](#gff3comment) | [GFF3Sequence](#gff3sequence))**&#x20;
+- `itemOrItems` A comment, sequence, or feature, or array of such items
 
-Returns **([string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String) | [Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)>)** A formatted string or array of strings
+Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** A formatted string or array of strings
 
 ### GFF3Attributes
 

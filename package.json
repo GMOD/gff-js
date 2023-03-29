@@ -14,11 +14,8 @@
     "email": "rbuels@gmail.com",
     "url": "https://github.com/rbuels"
   },
-  "bin": {
-    "gff-to-json": "dist/gff-to-json.js"
-  },
   "engines": {
-    "node": ">=10"
+    "node": ">=16"
   },
   "files": [
     "dist",
@@ -35,8 +32,8 @@
     "docs:util": "documentation readme src/util.ts --section=util  --shallow",
     "docs:format": "prettier --write README.md",
     "prebuild": "npm-run-all clean",
-    "build:esm": "tsc --target es2018 --outDir esm",
-    "build:es5": "tsc --target es2015 --module commonjs --outDir dist",
+    "build:esm": "tsc --outDir esm",
+    "build:cjs": "tsc --module commonjs --outDir dist",
     "build": "npm-run-all --parallel build:*",
     "prepublishOnly": "npm-run-all test build",
     "postversion": "git push --follow-tags"
@@ -48,12 +45,9 @@
     "gff",
     "genomics"
   ],
-  "dependencies": {
-    "stream-browserify": "^3.0.0"
-  },
   "devDependencies": {
     "@types/jest": "^29.2.4",
-    "@types/node": "^20.14.7",
+    "@types/node": "^16.11.7",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
     "documentation": "^14.0.1",
@@ -70,6 +64,7 @@
     "rimraf": "^5.0.7",
     "tmp-promise": "^3.0.2",
     "ts-jest": "^29.0.3",
+    "ts-node": "^10.9.1",
     "tslib": "^2.4.1",
     "typescript": "^5.5.2"
   }

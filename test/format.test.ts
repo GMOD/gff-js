@@ -1,17 +1,9 @@
-import {
-  createReadStream,
-  createWriteStream,
-  fdatasync as fdatasyncC,
-  promises as fsPromises,
-} from 'fs'
+import fsPromises from 'fs/promises'
+import { ReadableStream, WritableStream, TransformStream } from 'stream/web'
 import tmp from 'tmp-promise'
 
-import { promisify } from 'util'
-import getStream from 'get-stream'
-
 import gff from '../src'
-
-const fdatasync = promisify(fdatasyncC)
+import { FileSource, SyncFileSink } from './util'
 
 describe('GFF3 formatting', () => {
   ;['spec_eden', 'au9_scaffold_subset', 'hybrid1', 'hybrid2'].forEach(
@@ -40,17 +32,29 @@ describe('GFF3 formatting', () => {
           'utf8',
         )
 
-        const resultGFF3 = await getStream(
-          createReadStream(require.resolve(`./data/${file}.gff3`))
-            .pipe(
+        const stream = new ReadableStream(
+          new FileSource(require.resolve(`./data/${file}.gff3`)),
+        )
+          .pipeThrough(
+            new TransformStream(
               gff.parseStream({
                 parseFeatures: true,
                 parseComments: true,
                 parseDirectives: true,
               }),
-            )
-            .pipe(gff.formatStream()),
-        )
+            ),
+          )
+          .pipeThrough(new TransformStream(gff.formatStream()))
+        const chunks: string[] = []
+        const reader = stream.getReader()
+        let result: ReadableStreamReadResult<string>
+        do {
+          result = await reader.read()
+          if (result.value !== undefined) {
+            chunks.push(result.value)
+          }
+        } while (!result.done)
+        const resultGFF3 = chunks.join('')
         expect(resultGFF3).toEqual(expectedGFF3)
       })
     },
@@ -60,15 +64,19 @@ describe('GFF3 formatting', () => {
     'spec_eden.no_version_directive',
     'au9_scaffold_subset',
   ].forEach((file) => {
-    it(`can roundtrip ${file}.gff3 with formatFile`, async () => {
+    it(`can roundtrip ${file}.gff3 with formatStream and insertVersionDirective`, async () => {
       jest.setTimeout(1000)
       await tmp.withFile(async (tmpFile) => {
-        const gff3In = createReadStream(
-          require.resolve(`./data/${file}.gff3`),
-        ).pipe(gff.parseStream({ parseAll: true }))
-
-        await gff.formatFile(gff3In, createWriteStream(tmpFile.path))
-        await fdatasync(tmpFile.fd)
+        await new ReadableStream(
+          new FileSource(require.resolve(`./data/${file}.gff3`)),
+        )
+          .pipeThrough(new TransformStream(gff.parseStream({ parseAll: true })))
+          .pipeThrough(
+            new TransformStream(
+              gff.formatStream({ insertVersionDirective: true }),
+            ),
+          )
+          .pipeTo(new WritableStream(new SyncFileSink(tmpFile.fd)))
 
         const resultGFF3 = await fsPromises.readFile(tmpFile.path, 'utf8')
 

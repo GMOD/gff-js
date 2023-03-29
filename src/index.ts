@@ -1,28 +1,25 @@
-import {
-  parseStream,
-  parseStringSync,
-  formatSync,
-  formatStream,
-  formatFile,
-} from './api'
+import * as api from './api'
+
+export * from './api'
+
+export type {
+  GFF3Attributes,
+  GFF3Comment,
+  GFF3Directive,
+  GFF3Feature,
+  GFF3FeatureLine,
+  GFF3FeatureLineWithRefs,
+  GFF3GenomeBuildDirective,
+  GFF3Item,
+  GFF3Sequence,
+  GFF3SequenceRegionDirective,
+} from './util'
 
 import * as util from './util'
 
-export default {
-  parseStream,
-  parseStringSync,
-  formatSync,
-  formatStream,
-  formatFile,
+export const defaultExport = {
+  ...api,
   util,
 }
 
-export {
-  type GFF3Comment,
-  type GFF3Feature,
-  type GFF3Directive,
-  type GFF3FeatureLineWithRefs,
-  type GFF3FeatureLine,
-  type GFF3Item,
-  type GFF3Sequence,
-} from './api'
+export default defaultExport

@@ -5,14 +5,23 @@ const containerAttributes = {
   Derives_from: 'derived_features' as const,
 }
 
+export interface ParseCallbacks {
+  featureCallback?(feature: GFF3.GFF3Feature): void
+  commentCallback?(comment: GFF3.GFF3Comment): void
+  errorCallback?(error: string): void
+  directiveCallback?(directive: GFF3.GFF3Directive): void
+  sequenceCallback?(sequence: GFF3.GFF3Sequence): void
+}
+
 export class FASTAParser {
-  seqCallback: (sequence: GFF3.GFF3Sequence) => void
   currentSequence:
     | { id: string; sequence: string; description?: string }
     | undefined
 
-  constructor(seqCallback: (sequence: GFF3.GFF3Sequence) => void) {
-    this.seqCallback = seqCallback
+  constructor(
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    private seqCallback: (sequence: GFF3.GFF3Sequence) => void = () => {},
+  ) {
     this.currentSequence = undefined
   }
 
@@ -41,12 +50,7 @@ export class FASTAParser {
 }
 
 interface ParserArgs {
-  featureCallback?(feature: GFF3.GFF3Feature): void
   endCallback?(): void
-  commentCallback?(comment: GFF3.GFF3Comment): void
-  errorCallback?(error: string): void
-  directiveCallback?(directive: GFF3.GFF3Directive): void
-  sequenceCallback?(sequence: GFF3.GFF3Sequence): void
   bufferSize?: number
   disableDerivesFromReferences?: boolean
 }
@@ -57,13 +61,8 @@ interface References {
 }
 
 export default class Parser {
-  featureCallback: (feature: GFF3.GFF3Feature) => void
   endCallback: () => void
-  commentCallback: (comment: GFF3.GFF3Comment) => void
-  errorCallback: (error: string) => void
   disableDerivesFromReferences: boolean
-  directiveCallback: (directive: GFF3.GFF3Directive) => void
-  sequenceCallback: (sequence: GFF3.GFF3Sequence) => void
   bufferSize: number
   fastaParser: FASTAParser | undefined = undefined
   // if this is true, the parser ignores the  rest of the lines in the file.
@@ -86,18 +85,13 @@ export default class Parser {
   //     'Derives_from' : [ orphans that have a Derives_from attr referencing it ],
   //    }
   // }
-  private underConstructionOrphans: Record<string, References | undefined> = {}
+  private underConstructionOrphans = new Map<string, References | undefined>()
 
   constructor(args: ParserArgs) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     const nullFunc = () => {}
 
-    this.featureCallback = args.featureCallback || nullFunc
     this.endCallback = args.endCallback || nullFunc
-    this.commentCallback = args.commentCallback || nullFunc
-    this.errorCallback = args.errorCallback || nullFunc
-    this.directiveCallback = args.directiveCallback || nullFunc
-    this.sequenceCallback = args.sequenceCallback || nullFunc
     this.disableDerivesFromReferences =
       args.disableDerivesFromReferences || false
 
@@ -105,7 +99,7 @@ export default class Parser {
     this.bufferSize = args.bufferSize === undefined ? 1000 : args.bufferSize
   }
 
-  addLine(line: string): void {
+  addLine(line: string, callbacks: ParseCallbacks): void {
     // if we have transitioned to a fasta section, just delegate to that parser
     if (this.fastaParser) {
       this.fastaParser.addLine(line)
@@ -120,7 +114,7 @@ export default class Parser {
 
     if (/^\s*[^#\s>]/.test(line)) {
       // feature line, most common case
-      this.bufferLine(line)
+      this.bufferLine(line, callbacks)
       return
     }
 
@@ -132,39 +126,39 @@ export default class Parser {
 
       if (hashsigns.length === 3) {
         // sync directive, all forward-references are resolved.
-        this.emitAllUnderConstructionFeatures()
+        this.emitAllUnderConstructionFeatures(callbacks)
       } else if (hashsigns.length === 2) {
         const directive = GFF3.parseDirective(line)
         if (directive) {
           if (directive.directive === 'FASTA') {
-            this.emitAllUnderConstructionFeatures()
+            this.emitAllUnderConstructionFeatures(callbacks)
             this.eof = true
-            this.fastaParser = new FASTAParser(this.sequenceCallback)
+            this.fastaParser = new FASTAParser(callbacks.sequenceCallback)
           } else {
-            this.emitItem(directive)
+            this.emitItem(directive, callbacks)
           }
         }
       } else {
         contents = contents.replace(/\s*/, '')
-        this.emitItem({ comment: contents })
+        this.emitItem({ comment: contents }, callbacks)
       }
     } else if (/^\s*$/.test(line)) {
       // blank line, do nothing
     } else if (/^\s*>/.test(line)) {
       // implicit beginning of a FASTA section
-      this.emitAllUnderConstructionFeatures()
+      this.emitAllUnderConstructionFeatures(callbacks)
       this.eof = true
-      this.fastaParser = new FASTAParser(this.sequenceCallback)
+      this.fastaParser = new FASTAParser(callbacks.sequenceCallback)
       this.fastaParser.addLine(line)
     } else {
       // it's a parse error
       const errLine = line.replaceAll(/\r\n|[\r\n]$/g, '')
-      throw new Error(`GFF3 parse error.  Cannot parse '${errLine}'.`)
+      throw new Error(`GFF3 parse error. Cannot parse '${errLine}'.`)
     }
   }
 
-  finish(): void {
-    this.emitAllUnderConstructionFeatures()
+  finish(callbacks: ParseCallbacks): void {
+    this.emitAllUnderConstructionFeatures(callbacks)
     if (this.fastaParser) {
       this.fastaParser.finish()
     }
@@ -173,17 +167,21 @@ export default class Parser {
 
   private emitItem(
     i: GFF3.GFF3Feature | GFF3.GFF3Directive | GFF3.GFF3Comment,
+    callbacks: ParseCallbacks,
   ) {
-    if (Array.isArray(i)) {
-      this.featureCallback(i)
-    } else if ('directive' in i) {
-      this.directiveCallback(i)
-    } else if ('comment' in i) {
-      this.commentCallback(i)
+    if (Array.isArray(i) && callbacks.featureCallback) {
+      callbacks.featureCallback(i)
+    } else if ('directive' in i && callbacks.directiveCallback) {
+      callbacks.directiveCallback(i)
+    } else if ('comment' in i && callbacks.commentCallback) {
+      callbacks.commentCallback(i)
     }
   }
 
-  private enforceBufferSizeLimit(additionalItemCount = 0) {
+  private enforceBufferSizeLimit(
+    additionalItemCount = 0,
+    callbacks: ParseCallbacks,
+  ) {
     const _unbufferItem = (item?: GFF3.GFF3Feature) => {
       if (item && Array.isArray(item) && item[0].attributes?.ID?.[0]) {
         const ids = item[0].attributes.ID
@@ -208,7 +206,7 @@ export default class Parser {
     ) {
       const item = this.underConstructionTopLevel.shift()
       if (item) {
-        this.emitItem(item)
+        this.emitItem(item, callbacks)
         _unbufferItem(item)
       }
     }
@@ -218,8 +216,10 @@ export default class Parser {
    * return all under-construction features, called when we know there will be
    * no additional data to attach to them
    */
-  private emitAllUnderConstructionFeatures() {
-    this.underConstructionTopLevel.forEach(this.emitItem.bind(this))
+  private emitAllUnderConstructionFeatures(callbacks: ParseCallbacks) {
+    this.underConstructionTopLevel.forEach((f) =>
+      this.emitItem.bind(this)(f, callbacks),
+    )
 
     this.underConstructionTopLevel = []
     this.underConstructionById = {}
@@ -227,17 +227,17 @@ export default class Parser {
 
     // if we have any orphans hanging around still, this is a problem. die with
     // a parse error
-    if (Array.from(Object.values(this.underConstructionOrphans)).length) {
+    if (this.underConstructionOrphans.size) {
       throw new Error(
-        `some features reference other features that do not exist in the file (or in the same '###' scope). ${Object.keys(
-          this.underConstructionOrphans,
+        `some features reference other features that do not exist in the file (or in the same '###' scope). ${Array.from(
+          this.underConstructionOrphans.keys(),
         ).join(',')}`,
       )
     }
   }
 
   // do the right thing with a newly-parsed feature line
-  private bufferLine(line: string) {
+  private bufferLine(line: string, callbacks: ParseCallbacks) {
     const rawFeatureLine = GFF3.parseFeature(line)
     const featureLine: GFF3.GFF3FeatureLineWithRefs = {
       ...rawFeatureLine,
@@ -255,7 +255,7 @@ export default class Parser {
 
     if (!ids.length && !parents.length && !derives.length) {
       // if it has no IDs and does not refer to anything, we can just output it
-      this.emitItem([featureLine])
+      this.emitItem([featureLine], callbacks)
       return
     }
 
@@ -269,6 +269,7 @@ export default class Parser {
             `multi-line feature "${id}" has inconsistent types: "${
               featureLine.type
             }", "${existing[existing.length - 1].type}"`,
+            callbacks,
           )
         }
         existing.push(featureLine)
@@ -278,7 +279,7 @@ export default class Parser {
         // it
         feature = [featureLine]
 
-        this.enforceBufferSizeLimit(1)
+        this.enforceBufferSizeLimit(1, callbacks)
         if (!parents.length && !derives.length) {
           this.underConstructionTopLevel.push(feature)
         }
@@ -298,7 +299,7 @@ export default class Parser {
   }
 
   private resolveReferencesTo(feature: GFF3.GFF3Feature, id: string) {
-    const references = this.underConstructionOrphans[id]
+    const references = this.underConstructionOrphans.get(id)
     //   references is of the form
     //   {
     //     'Parent' : [ orphans that have a Parent attr referencing this feature ],
@@ -313,12 +314,28 @@ export default class Parser {
     feature.forEach((loc) => {
       loc.derived_features.push(...references.Derives_from)
     })
-    delete this.underConstructionOrphans[id]
+    this.underConstructionOrphans.delete(id)
   }
 
-  private parseError(message: string) {
+  private parseError(message: string, callbacks: ParseCallbacks) {
     this.eof = true
-    this.errorCallback(`${this.lineNumber}: ${message}`)
+    callbacks.errorCallback?.(`${this.lineNumber}: ${message}`)
+  }
+
+  // this is all a bit more awkward in javascript than it was in perl
+  private postSet(
+    obj: Record<string, Record<string, boolean | undefined> | undefined>,
+    slot1: string,
+    slot2: string,
+  ) {
+    let subObj = obj[slot1]
+    if (!subObj) {
+      subObj = {}
+      obj[slot1] = subObj
+    }
+    const returnVal = subObj[slot2] || false
+    subObj[slot2] = true
+    return returnVal
   }
 
   private resolveReferencesFrom(
@@ -326,29 +343,13 @@ export default class Parser {
     references: { Parent: string[]; Derives_from: string[] },
     ids: string[],
   ) {
-    // this is all a bit more awkward in javascript than it was in perl
-    function postSet(
-      obj: Record<string, Record<string, boolean | undefined> | undefined>,
-      slot1: string,
-      slot2: string,
-    ) {
-      let subObj = obj[slot1]
-      if (!subObj) {
-        subObj = {}
-        obj[slot1] = subObj
-      }
-      const returnVal = subObj[slot2] || false
-      subObj[slot2] = true
-      return returnVal
-    }
-
     references.Parent.forEach((toId) => {
       const otherFeature = this.underConstructionById[toId]
       if (otherFeature) {
         const pname = containerAttributes.Parent
         if (
           !ids.filter((id) =>
-            postSet(this.completedReferences, id, `Parent,${toId}`),
+            this.postSet(this.completedReferences, id, `Parent,${toId}`),
           ).length
         ) {
           otherFeature.forEach((location) => {
@@ -356,13 +357,13 @@ export default class Parser {
           })
         }
       } else {
-        let ref = this.underConstructionOrphans[toId]
+        let ref = this.underConstructionOrphans.get(toId)
         if (!ref) {
           ref = {
             Parent: [],
             Derives_from: [],
           }
-          this.underConstructionOrphans[toId] = ref
+          this.underConstructionOrphans.set(toId, ref)
         }
         ref.Parent.push(feature)
       }
@@ -374,7 +375,7 @@ export default class Parser {
         const pname = containerAttributes.Derives_from
         if (
           !ids.filter((id) =>
-            postSet(this.completedReferences, id, `Derives_from,${toId}`),
+            this.postSet(this.completedReferences, id, `Derives_from,${toId}`),
           ).length
         ) {
           otherFeature.forEach((location) => {
@@ -382,13 +383,13 @@ export default class Parser {
           })
         }
       } else {
-        let ref = this.underConstructionOrphans[toId]
+        let ref = this.underConstructionOrphans.get(toId)
         if (!ref) {
           ref = {
             Parent: [],
             Derives_from: [],
           }
-          this.underConstructionOrphans[toId] = ref
+          this.underConstructionOrphans.set(toId, ref)
         }
         ref.Derives_from.push(feature)
       }
