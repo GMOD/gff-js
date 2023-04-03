@@ -2,7 +2,12 @@ import fsPromises from 'fs/promises'
 import { ReadableStream, WritableStream, TransformStream } from 'stream/web'
 import tmp from 'tmp-promise'
 
-import gff from '../src'
+import {
+  GFFFormattingTransformer,
+  GFFTransformer,
+  formatSync,
+  parseStringSync,
+} from '../src'
 import { FileSource, SyncFileSink } from './util'
 
 describe('GFF3 formatting', () => {
@@ -21,11 +26,11 @@ describe('GFF3 formatting', () => {
           )
         ).replaceAll('###\n', '') // formatSync does not insert sync marks
 
-        const items = gff.parseStringSync(inputGFF3, {
+        const items = parseStringSync(inputGFF3, {
           parseComments: true,
           parseDirectives: true,
         })
-        const resultGFF3 = gff.formatSync(items)
+        const resultGFF3 = formatSync(items)
         expect(resultGFF3).toEqual(expectedGFF3)
       })
 
@@ -40,14 +45,14 @@ describe('GFF3 formatting', () => {
         )
           .pipeThrough(
             new TransformStream(
-              gff.parseStream({
+              new GFFTransformer({
                 parseFeatures: true,
                 parseComments: true,
                 parseDirectives: true,
               }),
             ),
           )
-          .pipeThrough(new TransformStream(gff.formatStream()))
+          .pipeThrough(new TransformStream(new GFFFormattingTransformer()))
         const chunks: string[] = []
         const reader = stream.getReader()
         let result: ReadableStreamReadResult<string>
@@ -75,7 +80,7 @@ describe('GFF3 formatting', () => {
         )
           .pipeThrough(
             new TransformStream(
-              gff.parseStream({
+              new GFFTransformer({
                 parseComments: true,
                 parseDirectives: true,
               }),
@@ -83,7 +88,7 @@ describe('GFF3 formatting', () => {
           )
           .pipeThrough(
             new TransformStream(
-              gff.formatStream({ insertVersionDirective: true }),
+              new GFFFormattingTransformer({ insertVersionDirective: true }),
             ),
           )
           .pipeTo(new WritableStream(new SyncFileSink(tmpFile.fd)))

@@ -265,19 +265,15 @@ ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)[
   - [bufferSize](#buffersize)
 - [GFFTransformer](#gfftransformer)
   - [Parameters](#parameters)
-- [parseStream](#parsestream)
-  - [Parameters](#parameters-1)
 - [parseStringSync](#parsestringsync)
-  - [Parameters](#parameters-2)
+  - [Parameters](#parameters-1)
 - [formatSync](#formatsync)
-  - [Parameters](#parameters-3)
+  - [Parameters](#parameters-2)
 - [FormatOptions](#formatoptions)
   - [minSyncLines](#minsynclines)
   - [insertVersionDirective](#insertversiondirective)
 - [GFFFormattingTransformer](#gffformattingtransformer)
-  - [Parameters](#parameters-4)
-- [formatStream](#formatstream)
-  - [Parameters](#parameters-5)
+  - [Parameters](#parameters-3)
 
 ### ParseOptions
 
@@ -327,17 +323,6 @@ an sequence objects.
 #### Parameters
 
 - `options` **[ParseOptions](#parseoptions)** Parser options (optional, default `{}`)
-
-### parseStream
-
-Parse a stream of text data into a stream of feature, directive, comment,
-an sequence objects.
-
-#### Parameters
-
-- `options` **[ParseOptions](#parseoptions)** Parsing options (optional, default `{}`)
-
-Returns **[GFFTransformer](#gfftransformer)** stream (in objectMode) of parsed items
 
 ### parseStringSync
 
@@ -390,19 +375,6 @@ Inserts synchronization (###) marks automatically.
 #### Parameters
 
 - `options` **[FormatOptions](#formatoptions)** Formatter options (optional, default `{}`)
-
-### formatStream
-
-Format a stream of features, directives, comments and/or sequences into a
-stream of GFF3 text.
-
-Inserts synchronization (###) marks automatically.
-
-#### Parameters
-
-- `options` **[FormatOptions](#formatoptions)** parser options (optional, default `{}`)
-
-Returns **[GFFFormattingTransformer](#gffformattingtransformer)**&#x20;
 
 ## About `util`
 

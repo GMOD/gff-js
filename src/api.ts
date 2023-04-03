@@ -134,17 +134,6 @@ export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
 }
 
 /**
- * Parse a stream of text data into a stream of feature, directive, comment,
- * an sequence objects.
- *
- * @param options - Parsing options
- * @returns stream (in objectMode) of parsed items
- */
-export function parseStream(options: ParseOptions = {}): GFFTransformer {
-  return new GFFTransformer(options)
-}
-
-/**
  * Synchronously parse a string containing GFF3 and return an array of the
  * parsed items.
  *
@@ -597,27 +586,3 @@ export class GFFFormattingTransformer implements Transformer<GFF3Item, string> {
     this.haveWeEmittedData = true
   }
 }
-
-/**
- * Format a stream of features, directives, comments and/or sequences into a
- * stream of GFF3 text.
- *
- * Inserts synchronization (###) marks automatically.
- *
- * @param options - parser options
- */
-export function formatStream(
-  options: FormatOptions = {},
-): GFFFormattingTransformer {
-  return new GFFFormattingTransformer(options)
-}
-
-export {
-  type GFF3FeatureLine,
-  type GFF3Comment,
-  type GFF3FeatureLineWithRefs,
-  type GFF3Directive,
-  type GFF3Sequence,
-  type GFF3Feature,
-  type GFF3Item,
-} from './util'
