@@ -13,8 +13,6 @@ import {
 export interface ParseOptions {
   /** Whether to resolve references to derives from features */
   disableDerivesFromReferences?: boolean
-  /** Text encoding of the input GFF3. default 'utf8' */
-  encoding?: BufferEncoding
   /** Whether to parse features, default true */
   parseFeatures?: boolean
   /** Whether to parse directives, default false */
@@ -23,21 +21,15 @@ export interface ParseOptions {
   parseComments?: boolean
   /** Whether to parse sequences, default true */
   parseSequences?: boolean
-  /**
-   * Parse all features, directives, comments, and sequences. Overrides other
-   * parsing options. Default false.
-   */
-  parseAll?: boolean
   /** Maximum number of GFF3 lines to buffer, default 1000 */
   bufferSize?: number
 }
 
-type ParseOptionsProcessed = Required<Omit<ParseOptions, 'parseAll'>>
+type ParseOptionsProcessed = Required<ParseOptions>
 
 // shared arg processing for the parse routines
 function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
   const out = {
-    encoding: 'utf8' as const,
     parseFeatures: true,
     parseDirectives: false,
     parseSequences: true,
@@ -45,13 +37,6 @@ function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
     bufferSize: 1000,
     disableDerivesFromReferences: false,
     ...options,
-  }
-
-  if (options.parseAll) {
-    out.parseFeatures = true
-    out.parseDirectives = true
-    out.parseComments = true
-    out.parseSequences = true
   }
 
   return out
@@ -75,8 +60,8 @@ export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
    * @param options - Parser options
    */
   constructor(options: ParseOptions = {}) {
+    this.decoder = new TextDecoder()
     const processedOptions = _processParseOptions(options)
-    this.decoder = new TextDecoder(processedOptions.encoding)
     const { bufferSize, disableDerivesFromReferences } = processedOptions
     this.parser = new Parser({ bufferSize, disableDerivesFromReferences })
     this.parseFeatures = processedOptions.parseFeatures
@@ -172,26 +157,15 @@ export function parseStringSync(
   inputOptions?:
     | {
         disableDerivesFromReferences?: boolean
-        encoding?: BufferEncoding
         bufferSize?: number
       }
     | undefined,
 ): (GFF3Feature | GFF3Sequence)[]
-export function parseStringSync<T extends boolean>(
-  str: string,
-  inputOptions: {
-    parseAll?: T
-    disableDerivesFromReferences?: boolean
-    encoding?: BufferEncoding
-    bufferSize?: number
-  },
-): T extends true ? GFF3Item[] : never
 export function parseStringSync<F extends boolean>(
   str: string,
   inputOptions: {
     disableDerivesFromReferences?: boolean
     parseFeatures: F
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Sequence[]
@@ -200,7 +174,6 @@ export function parseStringSync<D extends boolean>(
   inputOptions: {
     disableDerivesFromReferences?: boolean
     parseDirectives: D
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -210,7 +183,6 @@ export function parseStringSync<C extends boolean>(
   str: string,
   inputOptions: {
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): C extends true
@@ -221,7 +193,6 @@ export function parseStringSync<S extends boolean>(
   inputOptions: {
     disableDerivesFromReferences?: boolean
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): S extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Feature[]
@@ -231,7 +202,6 @@ export function parseStringSync<F extends boolean, D extends boolean>(
     disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseDirectives: D
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -247,7 +217,6 @@ export function parseStringSync<F extends boolean, C extends boolean>(
     disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -263,7 +232,6 @@ export function parseStringSync<F extends boolean, S extends boolean>(
     disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -279,7 +247,6 @@ export function parseStringSync<D extends boolean, C extends boolean>(
     disableDerivesFromReferences?: boolean
     parseDirectives: D
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -295,7 +262,6 @@ export function parseStringSync<D extends boolean, S extends boolean>(
     disableDerivesFromReferences?: boolean
     parseDirectives: D
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -311,7 +277,6 @@ export function parseStringSync<C extends boolean, S extends boolean>(
     disableDerivesFromReferences?: boolean
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): C extends true
@@ -332,7 +297,6 @@ export function parseStringSync<
     parseFeatures: F
     parseDirectives: D
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -361,7 +325,6 @@ export function parseStringSync<
     parseFeatures: F
     parseDirectives: D
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -390,7 +353,6 @@ export function parseStringSync<
     parseFeatures: F
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -419,7 +381,6 @@ export function parseStringSync<
     parseFeatures: D
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -450,7 +411,6 @@ export function parseStringSync<
     parseDirectives: D
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true

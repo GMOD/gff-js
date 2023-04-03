@@ -21,7 +21,10 @@ describe('GFF3 formatting', () => {
           )
         ).replaceAll('###\n', '') // formatSync does not insert sync marks
 
-        const items = gff.parseStringSync(inputGFF3, { parseAll: true })
+        const items = gff.parseStringSync(inputGFF3, {
+          parseComments: true,
+          parseDirectives: true,
+        })
         const resultGFF3 = gff.formatSync(items)
         expect(resultGFF3).toEqual(expectedGFF3)
       })
@@ -70,7 +73,14 @@ describe('GFF3 formatting', () => {
         await new ReadableStream(
           new FileSource(require.resolve(`./data/${file}.gff3`)),
         )
-          .pipeThrough(new TransformStream(gff.parseStream({ parseAll: true })))
+          .pipeThrough(
+            new TransformStream(
+              gff.parseStream({
+                parseComments: true,
+                parseDirectives: true,
+              }),
+            ),
+          )
           .pipeThrough(
             new TransformStream(
               gff.formatStream({ insertVersionDirective: true }),
