@@ -1,6 +1,6 @@
 import fsPromises from 'fs/promises'
 import { ReadableStream, TransformStream } from 'stream/web'
-import gff from '../src'
+import gff, { GFFTransformer } from '../src'
 import {
   formatFeature,
   GFF3Feature,
@@ -32,7 +32,7 @@ async function readAll(
 
   const stream = new ReadableStream(new FileSource(require.resolve(filename)))
   const transformStream = new TransformStream(
-    gff.parseStream({
+    new GFFTransformer({
       parseFeatures: true,
       parseDirectives: true,
       parseComments: true,
