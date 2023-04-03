@@ -96,7 +96,7 @@ export default class Parser {
       args.disableDerivesFromReferences || false
 
     // number of lines to buffer
-    this.bufferSize = args.bufferSize === undefined ? 1000 : args.bufferSize
+    this.bufferSize = args.bufferSize === undefined ? 50000 : args.bufferSize
   }
 
   addLine(line: string, callbacks: ParseCallbacks): void {

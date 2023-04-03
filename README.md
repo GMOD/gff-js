@@ -315,7 +315,7 @@ Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Glob
 
 #### bufferSize
 
-Maximum number of GFF3 lines to buffer, default 1000
+Maximum number of GFF3 lines to buffer, default 50000
 
 Type: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
