@@ -53,7 +53,9 @@ import {
 ;(async () => {
   const readStream = createReadStream('/path/to/my/file.gff3')
   const streamOfGFF3 = Readable.toWeb(readStream).pipeThrough(
-    new TransformStream(new GFFTransformer({ parseAll: true })),
+    new TransformStream(
+      new GFFTransformer({ parseComments: true, parseDirectives: true }),
+    ),
   )
   for await (const data of streamOfGFF3) {
     if ('directive' in data) {
@@ -78,7 +80,11 @@ import {
   // read a file, format it, and write it to a new file. inserts sync marks and
   // a '##gff-version 3' header if one is not already present
   await Readable.toWeb(createReadStream('/path/to/my/file.gff3'))
-    .pipeThrough(new TransformStream(new GFFTransformer({ parseAll: true })))
+    .pipeThrough(
+      new TransformStream(
+        new GFFTransformer({ parseComments: true, parseDirectives: true }),
+      ),
+    )
     .pipeThrough(new TransformStream(new GFFFormattingTransformer()))
     .pipeTo(Writable.toWeb(createWriteStream('/path/to/my/file.gff3')))
 })()
@@ -250,12 +256,10 @@ ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)[
 
 - [ParseOptions](#parseoptions)
   - [disableDerivesFromReferences](#disablederivesfromreferences)
-  - [encoding](#encoding)
   - [parseFeatures](#parsefeatures)
   - [parseDirectives](#parsedirectives)
   - [parseComments](#parsecomments)
   - [parseSequences](#parsesequences)
-  - [parseAll](#parseall)
   - [bufferSize](#buffersize)
 - [GFFTransformer](#gfftransformer)
   - [Parameters](#parameters)
@@ -283,12 +287,6 @@ Whether to resolve references to derives from features
 
 Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-#### encoding
-
-Text encoding of the input GFF3. default 'utf8'
-
-Type: BufferEncoding
-
 #### parseFeatures
 
 Whether to parse features, default true
@@ -310,13 +308,6 @@ Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Glob
 #### parseSequences
 
 Whether to parse sequences, default true
-
-Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-
-#### parseAll
-
-Parse all features, directives, comments, and sequences. Overrides other
-parsing options. Default false.
 
 Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -354,7 +345,7 @@ parsed items.
 #### Parameters
 
 - `str` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** GFF3 string
-- `inputOptions` **({disableDerivesFromReferences: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?, encoding: BufferEncoding?, bufferSize: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
+- `inputOptions` **({disableDerivesFromReferences: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?, bufferSize: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<(GFF3Feature | GFF3Sequence)>** array of parsed features, directives, comments and/or sequences
 
