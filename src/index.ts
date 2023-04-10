@@ -23,3 +23,5 @@ export const defaultExport = {
 }
 
 export default defaultExport
+
+export * as util from './util'

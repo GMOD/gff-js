@@ -1,13 +1,13 @@
-import fsPromises from 'fs/promises'
+import { readFile } from 'fs/promises'
 import { ReadableStream, TransformStream } from 'stream/web'
-import gff, { GFFTransformer } from '../src'
-import {
-  formatFeature,
+import { GFFTransformer, parseStringSync } from './api'
+import { formatFeature } from './util'
+import type {
   GFF3Feature,
-  GFF3Directive,
   GFF3Comment,
+  GFF3Directive,
   GFF3Sequence,
-} from '../src/util'
+} from './util'
 import { FileSource } from '../test/util'
 
 interface ReadAllResults {
@@ -61,7 +61,7 @@ describe('GFF3 parser', () => {
   it('can parse gff3_with_syncs.gff3', async () => {
     const stuff = await readAll('../test/data/gff3_with_syncs.gff3')
     const referenceResult = JSON.parse(
-      await fsPromises.readFile(
+      await readFile(
         require.resolve('../test/data/gff3_with_syncs.result.json'),
         'utf8',
       ),
@@ -93,7 +93,7 @@ describe('GFF3 parser', () => {
     const stuff = await readAll('../test/data/knownGene_out_of_order.gff3')
     // $p->max_lookback(2);
     const expectedOutput = JSON.parse(
-      await fsPromises.readFile(
+      await readFile(
         require.resolve('../test/data/knownGene_out_of_order.result.json'),
         'utf8',
       ),
@@ -134,7 +134,7 @@ describe('GFF3 parser', () => {
     expect(mrnaLines[2].child_features).toHaveLength(6)
 
     const referenceResult = JSON.parse(
-      await fsPromises.readFile(
+      await readFile(
         require.resolve('../test/data/spec_eden.result.json'),
         'utf8',
       ),
@@ -172,18 +172,18 @@ describe('GFF3 parser', () => {
   )
 
   it('can parse a string synchronously', async () => {
-    const gff3 = await fsPromises.readFile(
+    const gff3 = await readFile(
       require.resolve('../test/data/spec_eden.gff3'),
       'utf8',
     )
-    const result = gff.parseStringSync(gff3, {
+    const result = parseStringSync(gff3, {
       parseFeatures: true,
       parseDirectives: true,
       parseComments: true,
     })
     expect(result).toHaveLength(3)
     const referenceResult = JSON.parse(
-      await fsPromises.readFile(
+      await readFile(
         require.resolve('../test/data/spec_eden.result.json'),
         'utf8',
       ),
@@ -196,7 +196,7 @@ describe('GFF3 parser', () => {
 SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	 multivalue = val1,val2, val3;testing = blah
 `
 
-    const result = gff.parseStringSync(gff3, {
+    const result = parseStringSync(gff3, {
       parseFeatures: true,
       parseDirectives: true,
       parseComments: true,
@@ -230,7 +230,7 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	 multivalue = val1
 SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g098840;ID=gene:Solyc01g098840.2;Name=Solyc01g098840.2;from_BOGAS=1;length=5178
 `
 
-    const result = gff.parseStringSync(gff3, {
+    const result = parseStringSync(gff3, {
       parseFeatures: true,
       parseDirectives: true,
       parseComments: true,
