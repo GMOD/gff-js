@@ -1,17 +1,17 @@
-import gff from '.'
-import { GFF3FeatureLine } from './util'
-
-const {
+import {
+  escape,
+  escapeColumn,
+  formatFeature,
   parseAttributes,
   parseFeature,
   parseDirective,
-  formatFeature,
-  escapeColumn,
-} = gff.util
+  unescape,
+  GFF3FeatureLine,
+} from './util'
 
 describe('GFF3 utils', () => {
   it('can escape properly', () => {
-    expect(gff.util.escape(5)).toEqual('5')
+    expect(escape(5)).toEqual('5')
     // TODO: should add more escape tests
   })
   it('can parse a bad directive', () => {
@@ -20,8 +20,8 @@ describe('GFF3 utils', () => {
     }).not.toThrow()
   })
   it('can unescape properly', () => {
-    expect(gff.util.unescape(' ')).toEqual(' ')
-    expect(gff.util.unescape('5')).toEqual('5')
+    expect(unescape(' ')).toEqual(' ')
+    expect(unescape('5')).toEqual('5')
     // TODO: should add more unescape tests
   })
   const attributeCases: [string, Record<string, string[]>][] = [

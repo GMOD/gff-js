@@ -16,6 +16,7 @@ export type {
 } from './util'
 
 import * as util from './util'
+export { util }
 
 export const defaultExport = {
   ...api,
