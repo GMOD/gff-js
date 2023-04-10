@@ -7,21 +7,21 @@ import {
   GFFTransformer,
   formatSync,
   parseStringSync,
-} from '../src'
-import { FileSource, SyncFileSink } from './util'
+} from '.'
+import { FileSource, SyncFileSink } from '../test/util'
 
 describe('GFF3 formatting', () => {
   ;['spec_eden', 'au9_scaffold_subset', 'hybrid1', 'hybrid2'].forEach(
     (file) => {
       it(`can roundtrip ${file}.gff3 with formatSync`, async () => {
         const inputGFF3 = await fsPromises.readFile(
-          require.resolve(`./data/${file}.gff3`),
+          require.resolve(`../test/data/${file}.gff3`),
           'utf8',
         )
 
         const expectedGFF3 = (
           await fsPromises.readFile(
-            require.resolve(`./data/${file}.reformatted.gff3`),
+            require.resolve(`../test/data/${file}.reformatted.gff3`),
             'utf8',
           )
         ).replaceAll('###\n', '') // formatSync does not insert sync marks
@@ -36,12 +36,12 @@ describe('GFF3 formatting', () => {
 
       it(`can roundtrip ${file}.gff3 with formatStream`, async () => {
         const expectedGFF3 = await fsPromises.readFile(
-          require.resolve(`./data/${file}.reformatted.gff3`),
+          require.resolve(`../test/data/${file}.reformatted.gff3`),
           'utf8',
         )
 
         const stream = new ReadableStream(
-          new FileSource(require.resolve(`./data/${file}.gff3`)),
+          new FileSource(require.resolve(`../test/data/${file}.gff3`)),
         )
           .pipeThrough(
             new TransformStream(
@@ -76,7 +76,7 @@ describe('GFF3 formatting', () => {
       jest.setTimeout(1000)
       await tmp.withFile(async (tmpFile) => {
         await new ReadableStream(
-          new FileSource(require.resolve(`./data/${file}.gff3`)),
+          new FileSource(require.resolve(`../test/data/${file}.gff3`)),
         )
           .pipeThrough(
             new TransformStream(
@@ -96,7 +96,7 @@ describe('GFF3 formatting', () => {
         const resultGFF3 = await fsPromises.readFile(tmpFile.path, 'utf8')
 
         const expectedGFF3 = await fsPromises.readFile(
-          require.resolve(`./data/${file}.reformatted.gff3`),
+          require.resolve(`../test/data/${file}.reformatted.gff3`),
           'utf8',
         )
 

@@ -8,7 +8,7 @@ import {
   GFF3Comment,
   GFF3Sequence,
 } from '../src/util'
-import { FileSource } from './util'
+import { FileSource } from '../test/util'
 
 interface ReadAllResults {
   features: GFF3Feature[]
@@ -59,10 +59,10 @@ async function readAll(
 
 describe('GFF3 parser', () => {
   it('can parse gff3_with_syncs.gff3', async () => {
-    const stuff = await readAll('./data/gff3_with_syncs.gff3')
+    const stuff = await readAll('../test/data/gff3_with_syncs.gff3')
     const referenceResult = JSON.parse(
       await fsPromises.readFile(
-        require.resolve('./data/gff3_with_syncs.result.json'),
+        require.resolve('../test/data/gff3_with_syncs.result.json'),
         'utf8',
       ),
     )
@@ -84,17 +84,17 @@ describe('GFF3 parser', () => {
     [8, 'quantitative.gff3'],
   ].forEach(([count, filename]) => {
     it(`can cursorily parse ${filename}`, async () => {
-      const stuff = await readAll(`./data/${filename}`)
+      const stuff = await readAll(`../test/data/${filename}`)
       expect(stuff.all.length).toEqual(count)
     })
   })
 
   it('supports children before parents, and Derives_from', async () => {
-    const stuff = await readAll('./data/knownGene_out_of_order.gff3')
+    const stuff = await readAll('../test/data/knownGene_out_of_order.gff3')
     // $p->max_lookback(2);
     const expectedOutput = JSON.parse(
       await fsPromises.readFile(
-        require.resolve('./data/knownGene_out_of_order.result.json'),
+        require.resolve('../test/data/knownGene_out_of_order.result.json'),
         'utf8',
       ),
     )
@@ -102,7 +102,7 @@ describe('GFF3 parser', () => {
   })
 
   it('can parse the EDEN gene from the gff3 spec', async () => {
-    const stuff = await readAll('./data/spec_eden.gff3')
+    const stuff = await readAll('../test/data/spec_eden.gff3')
     expect(stuff.all[2]).toHaveLength(1)
     const [eden] = stuff.all[2] as GFF3Feature
 
@@ -135,7 +135,7 @@ describe('GFF3 parser', () => {
 
     const referenceResult = JSON.parse(
       await fsPromises.readFile(
-        require.resolve('./data/spec_eden.result.json'),
+        require.resolve('../test/data/spec_eden.result.json'),
         'utf8',
       ),
     )
@@ -143,18 +143,18 @@ describe('GFF3 parser', () => {
   })
 
   it('can parse an excerpt of the refGene gff3', async () => {
-    const stuff = await readAll('./data/refGene_excerpt.gff3')
+    const stuff = await readAll('../test/data/refGene_excerpt.gff3')
     expect(true).toBeTruthy()
     expect(stuff.all).toHaveLength(2)
   })
 
   it('can parse an excerpt of the TAIR10 gff3', async () => {
-    const stuff = await readAll('./data/tair10.gff3')
+    const stuff = await readAll('../test/data/tair10.gff3')
     expect(stuff.all).toHaveLength(3)
   })
 
   it('can parse chr1 TAIR10 gff3', async () => {
-    const stuff = await readAll('./data/tair10_chr1.gff', {
+    const stuff = await readAll('../test/data/tair10_chr1.gff', {
       disableDerivesFromReferences: true,
     })
     expect(stuff.all).toHaveLength(17697)
@@ -164,7 +164,7 @@ describe('GFF3 parser', () => {
   ;['mm9_sample_ensembl.gff3', 'Saccharomyces_cerevisiae_EF3_e64.gff3'].forEach(
     (errorFile) => {
       it(`throws an error when parsing ${errorFile}`, async () => {
-        await expect(readAll(`./data/${errorFile}`)).rejects.toMatch(
+        await expect(readAll(`../test/data/${errorFile}`)).rejects.toMatch(
           /inconsistent types/,
         )
       })
@@ -173,7 +173,7 @@ describe('GFF3 parser', () => {
 
   it('can parse a string synchronously', async () => {
     const gff3 = await fsPromises.readFile(
-      require.resolve('./data/spec_eden.gff3'),
+      require.resolve('../test/data/spec_eden.gff3'),
       'utf8',
     )
     const result = gff.parseStringSync(gff3, {
@@ -184,7 +184,7 @@ describe('GFF3 parser', () => {
     expect(result).toHaveLength(3)
     const referenceResult = JSON.parse(
       await fsPromises.readFile(
-        require.resolve('./data/spec_eden.result.json'),
+        require.resolve('../test/data/spec_eden.result.json'),
         'utf8',
       ),
     )
@@ -297,7 +297,7 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g0988
     ] as const
   ).forEach(([filename, expectedOutput]) => {
     it(`can parse FASTA sections in hybrid ${filename} file`, async () => {
-      const stuff = await readAll(`./data/${filename}`)
+      const stuff = await readAll(`../test/data/${filename}`)
       expect(stuff.sequences).toEqual(expectedOutput)
     })
   })
