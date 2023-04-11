@@ -282,9 +282,16 @@ export function formatComment(comment: GFF3Comment): string {
  * @returns Formatted single FASTA sequence string
  */
 export function formatSequence(seq: GFF3Sequence): string {
-  return `>${seq.id}${seq.description ? ` ${seq.description}` : ''}\n${
-    seq.sequence
-  }\n`
+  const header = `>${seq.id}${seq.description ? ` ${seq.description}` : ''}\n`
+  // split sequence chunks into lines of length 80 for embedded FASTA
+  const lineLength = 80
+  const numChunks = Math.ceil(seq.sequence.length / lineLength)
+  const chunks = new Array(numChunks)
+  for (let i = 0; i < numChunks; i += 1) {
+    const start = i * lineLength
+    chunks[i] = seq.sequence.slice(start, start + lineLength)
+  }
+  return `${header}${chunks.join('\n')}\n`
 }
 
 function formatSingleItem(
