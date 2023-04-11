@@ -1,4 +1,12 @@
-import * as GFF3 from './util'
+import {
+  parseDirective,
+  parseFeature,
+  GFF3Feature,
+  GFF3FeatureLineWithRefs,
+  GFF3Comment,
+  GFF3Directive,
+  GFF3Sequence,
+} from './util'
 
 const containerAttributes = {
   Parent: 'child_features' as const,
@@ -6,11 +14,11 @@ const containerAttributes = {
 }
 
 export interface ParseCallbacks {
-  featureCallback?(feature: GFF3.GFF3Feature): void
-  commentCallback?(comment: GFF3.GFF3Comment): void
+  featureCallback?(feature: GFF3Feature): void
+  commentCallback?(comment: GFF3Comment): void
   errorCallback?(error: string): void
-  directiveCallback?(directive: GFF3.GFF3Directive): void
-  sequenceCallback?(sequence: GFF3.GFF3Sequence): void
+  directiveCallback?(directive: GFF3Directive): void
+  sequenceCallback?(sequence: GFF3Sequence): void
 }
 
 export class FASTAParser {
@@ -20,7 +28,7 @@ export class FASTAParser {
 
   constructor(
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    private seqCallback: (sequence: GFF3.GFF3Sequence) => void = () => {},
+    private seqCallback: (sequence: GFF3Sequence) => void = () => {},
   ) {
     this.currentSequence = undefined
   }
@@ -56,11 +64,11 @@ interface ParserArgs {
 }
 
 interface References {
-  Parent: GFF3.GFF3Feature[]
-  Derives_from: GFF3.GFF3Feature[]
+  Parent: GFF3Feature[]
+  Derives_from: GFF3Feature[]
 }
 
-export default class Parser {
+export class GFF3Parser {
   endCallback: () => void
   disableDerivesFromReferences: boolean
   bufferSize: number
@@ -71,10 +79,9 @@ export default class Parser {
   lineNumber = 0
   // features that we have to keep on hand for now because they might be
   // referenced by something else
-  private underConstructionTopLevel: GFF3.GFF3Feature[] = []
+  private underConstructionTopLevel: GFF3Feature[] = []
   // index of the above by ID
-  private underConstructionById: Record<string, GFF3.GFF3Feature | undefined> =
-    {}
+  private underConstructionById: Record<string, GFF3Feature | undefined> = {}
   private completedReferences: Record<
     string,
     Record<string, boolean | undefined> | undefined
@@ -128,7 +135,7 @@ export default class Parser {
         // sync directive, all forward-references are resolved.
         this.emitAllUnderConstructionFeatures(callbacks)
       } else if (hashsigns.length === 2) {
-        const directive = GFF3.parseDirective(line)
+        const directive = parseDirective(line)
         if (directive) {
           if (directive.directive === 'FASTA') {
             this.emitAllUnderConstructionFeatures(callbacks)
@@ -166,7 +173,7 @@ export default class Parser {
   }
 
   private emitItem(
-    i: GFF3.GFF3Feature | GFF3.GFF3Directive | GFF3.GFF3Comment,
+    i: GFF3Feature | GFF3Directive | GFF3Comment,
     callbacks: ParseCallbacks,
   ) {
     if (Array.isArray(i) && callbacks.featureCallback) {
@@ -182,7 +189,7 @@ export default class Parser {
     additionalItemCount = 0,
     callbacks: ParseCallbacks,
   ) {
-    const _unbufferItem = (item?: GFF3.GFF3Feature) => {
+    const _unbufferItem = (item?: GFF3Feature) => {
       if (item && Array.isArray(item) && item[0].attributes?.ID?.[0]) {
         const ids = item[0].attributes.ID
         ids.forEach((id) => {
@@ -238,8 +245,8 @@ export default class Parser {
 
   // do the right thing with a newly-parsed feature line
   private bufferLine(line: string, callbacks: ParseCallbacks) {
-    const rawFeatureLine = GFF3.parseFeature(line)
-    const featureLine: GFF3.GFF3FeatureLineWithRefs = {
+    const rawFeatureLine = parseFeature(line)
+    const featureLine: GFF3FeatureLineWithRefs = {
       ...rawFeatureLine,
       child_features: [],
       derived_features: [],
@@ -259,7 +266,7 @@ export default class Parser {
       return
     }
 
-    let feature: GFF3.GFF3Feature | undefined = undefined
+    let feature: GFF3Feature | undefined = undefined
     ids.forEach((id) => {
       const existing = this.underConstructionById[id]
       if (existing) {
@@ -298,7 +305,7 @@ export default class Parser {
     )
   }
 
-  private resolveReferencesTo(feature: GFF3.GFF3Feature, id: string) {
+  private resolveReferencesTo(feature: GFF3Feature, id: string) {
     const references = this.underConstructionOrphans.get(id)
     //   references is of the form
     //   {
@@ -339,7 +346,7 @@ export default class Parser {
   }
 
   private resolveReferencesFrom(
-    feature: GFF3.GFF3Feature,
+    feature: GFF3Feature,
     references: { Parent: string[]; Derives_from: string[] },
     ids: string[],
   ) {

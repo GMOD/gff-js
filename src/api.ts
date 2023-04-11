@@ -1,4 +1,4 @@
-import Parser, { ParseCallbacks } from './parse'
+import { GFF3Parser, ParseCallbacks } from './parse'
 import {
   formatItem,
   formatSequence,
@@ -48,7 +48,7 @@ function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
  */
 export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
   private decoder: TextDecoder
-  private parser: Parser
+  private parser: GFF3Parser
   private lastString = ''
   private parseFeatures: boolean
   private parseDirectives: boolean
@@ -63,7 +63,7 @@ export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
     this.decoder = new TextDecoder()
     const processedOptions = _processParseOptions(options)
     const { bufferSize, disableDerivesFromReferences } = processedOptions
-    this.parser = new Parser({ bufferSize, disableDerivesFromReferences })
+    this.parser = new GFF3Parser({ bufferSize, disableDerivesFromReferences })
     this.parseFeatures = processedOptions.parseFeatures
     this.parseDirectives = processedOptions.parseDirectives
     this.parseComments = processedOptions.parseComments
@@ -464,7 +464,7 @@ export function parseStringSync(
     callbacks.sequenceCallback = push
   }
 
-  const parser = new Parser({
+  const parser = new GFF3Parser({
     disableDerivesFromReferences: options.disableDerivesFromReferences || false,
     bufferSize: Infinity,
   })
@@ -537,7 +537,8 @@ export class GFFFormattingTransformer implements Transformer<GFF3Item, string> {
    */
   constructor(options: FormatOptions = {}) {
     this.minLinesBetweenSyncMarks = options.minSyncLines || 100
-    this.insertVersionDirective = options.insertVersionDirective || true
+    this.insertVersionDirective =
+      options.insertVersionDirective === false ? false : true
   }
 
   transform(
