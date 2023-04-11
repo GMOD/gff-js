@@ -8,15 +8,12 @@
  * @returns An unescaped string value
  */
 export function unescape(stringVal: string): string {
-  return stringVal.replaceAll(/%([0-9A-Fa-f]{2})/g, (_match, seq) =>
-    String.fromCharCode(parseInt(seq, 16)),
-  )
+  return decodeURIComponent(stringVal)
 }
 
 function _escape(regex: RegExp, s: string | number) {
-  return String(s).replace(regex, (ch) => {
-    const hex = ch.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')
-    return `%${hex}`
+  return String(s).replaceAll(regex, (ch) => {
+    return encodeURIComponent(ch).toUpperCase()
   })
 }
 
@@ -27,7 +24,7 @@ function _escape(regex: RegExp, s: string | number) {
  * @returns An escaped string value
  */
 export function escape(rawVal: string | number): string {
-  return _escape(/[\n;\r\t=%&,\u0000-\u001f\u007f-\u00ff]/g, rawVal)
+  return _escape(/[\n;\r\t=%&,\u0000-\u001f\u007f]/g, rawVal)
 }
 
 /**
@@ -37,7 +34,7 @@ export function escape(rawVal: string | number): string {
  * @returns An escaped column value
  */
 export function escapeColumn(rawVal: string | number): string {
-  return _escape(/[\n\r\t%\u0000-\u001f\u007f-\u00ff]/g, rawVal)
+  return _escape(/[\n\r\t%\u0000-\u001f\u007f]/g, rawVal)
 }
 
 /**
