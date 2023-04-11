@@ -1,8 +1,10 @@
 {
   "include": ["src"],
   "compilerOptions": {
+    // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping#node-16
     "types": ["node", "jest"],
-    "lib": ["dom", "esnext"],
+    "lib": ["dom", "es2021"],
+    "target": "es2021",
     "declaration": true,
     "moduleResolution": "node",
     "sourceMap": true,

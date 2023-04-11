@@ -1,35 +1,18 @@
-import { Transform, TransformCallback, Readable, Writable } from 'stream'
-import { StringDecoder as Decoder } from 'string_decoder'
-
-import Parser from './parse'
+import { GFF3Parser, ParseCallbacks } from './parse'
 import {
   formatItem,
   formatSequence,
   GFF3Comment,
   GFF3Directive,
   GFF3Feature,
-  GFF3FeatureLine,
-  GFF3FeatureLineWithRefs,
   GFF3Sequence,
   GFF3Item,
 } from './util'
-
-export type {
-  GFF3Comment,
-  GFF3Directive,
-  GFF3Feature,
-  GFF3FeatureLine,
-  GFF3FeatureLineWithRefs,
-  GFF3Sequence,
-  GFF3Item,
-}
 
 /** Parser options */
 export interface ParseOptions {
   /** Whether to resolve references to derives from features */
   disableDerivesFromReferences?: boolean
-  /** Text encoding of the input GFF3. default 'utf8' */
-  encoding?: BufferEncoding
   /** Whether to parse features, default true */
   parseFeatures?: boolean
   /** Whether to parse directives, default false */
@@ -38,112 +21,116 @@ export interface ParseOptions {
   parseComments?: boolean
   /** Whether to parse sequences, default true */
   parseSequences?: boolean
-  /**
-   * Parse all features, directives, comments, and sequences. Overrides other
-   * parsing options. Default false.
-   */
-  parseAll?: boolean
-  /** Maximum number of GFF3 lines to buffer, default 1000 */
+  /** Maximum number of GFF3 lines to buffer, default 50000 */
   bufferSize?: number
 }
 
-type ParseOptionsProcessed = Required<Omit<ParseOptions, 'parseAll'>>
-
-// call a callback on the next process tick if running in
-// an environment that supports it
-function _callback(callback: TransformCallback) {
-  if (process && process.nextTick) process.nextTick(callback)
-  else callback()
-}
+type ParseOptionsProcessed = Required<ParseOptions>
 
 // shared arg processing for the parse routines
 function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
   const out = {
-    encoding: 'utf8' as const,
     parseFeatures: true,
     parseDirectives: false,
     parseSequences: true,
     parseComments: false,
-    bufferSize: 1000,
+    bufferSize: 50000,
     disableDerivesFromReferences: false,
     ...options,
-  }
-
-  if (options.parseAll) {
-    out.parseFeatures = true
-    out.parseDirectives = true
-    out.parseComments = true
-    out.parseSequences = true
   }
 
   return out
 }
 
-class GFFTransform extends Transform {
-  encoding: BufferEncoding
-  decoder: Decoder
-  textBuffer = ''
-  parser: Parser
-
-  constructor(inputOptions: ParseOptions = {}) {
-    super({ objectMode: true })
-    const options = _processParseOptions(inputOptions)
-
-    this.encoding = inputOptions.encoding || 'utf8'
-
-    this.decoder = new Decoder()
-
-    const push = this.push.bind(this)
-    this.parser = new Parser({
-      featureCallback: options.parseFeatures ? push : undefined,
-      directiveCallback: options.parseDirectives ? push : undefined,
-      commentCallback: options.parseComments ? push : undefined,
-      sequenceCallback: options.parseSequences ? push : undefined,
-      errorCallback: (err) => this.emit('error', err),
-      bufferSize: options.bufferSize,
-      disableDerivesFromReferences: options.disableDerivesFromReferences,
-    })
-  }
-
-  private _addLine(data: string | undefined) {
-    if (data) {
-      this.parser.addLine(data)
-    }
-  }
-
-  private _nextText(buffer: string) {
-    const pieces = (this.textBuffer + buffer).split(/\r?\n/)
-    this.textBuffer = pieces.pop() || ''
-
-    pieces.forEach((piece) => this._addLine(piece))
-  }
-
-  _transform(
-    chunk: Buffer,
-    _encoding: BufferEncoding,
-    callback: TransformCallback,
-  ) {
-    this._nextText(this.decoder.write(chunk))
-    _callback(callback)
-  }
-
-  _flush(callback: TransformCallback) {
-    if (this.decoder.end) this._nextText(this.decoder.end())
-    if (this.textBuffer != null) this._addLine(this.textBuffer)
-    this.parser.finish()
-    _callback(callback)
-  }
-}
-
 /**
  * Parse a stream of text data into a stream of feature, directive, comment,
  * an sequence objects.
- *
- * @param options - Parsing options
- * @returns stream (in objectMode) of parsed items
  */
-export function parseStream(options: ParseOptions = {}): GFFTransform {
-  return new GFFTransform(options)
+export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
+  private decoder: TextDecoder
+  private parser: GFF3Parser
+  private lastString = ''
+  private parseFeatures: boolean
+  private parseDirectives: boolean
+  private parseComments: boolean
+  private parseSequences: boolean
+
+  /**
+   * Options for how the text stream is parsed
+   * @param options - Parser options
+   */
+  constructor(options: ParseOptions = {}) {
+    this.decoder = new TextDecoder()
+    const processedOptions = _processParseOptions(options)
+    const { bufferSize, disableDerivesFromReferences } = processedOptions
+    this.parser = new GFF3Parser({ bufferSize, disableDerivesFromReferences })
+    this.parseFeatures = processedOptions.parseFeatures
+    this.parseDirectives = processedOptions.parseDirectives
+    this.parseComments = processedOptions.parseComments
+    this.parseSequences = processedOptions.parseSequences
+  }
+
+  private makeCallbacks(
+    controller: TransformStreamDefaultController<GFF3Item>,
+  ) {
+    const callbacks: ParseCallbacks = {
+      errorCallback: this.emitErrorMessage.bind(this, controller),
+    }
+    if (this.parseFeatures) {
+      callbacks.featureCallback = this.enqueueItem.bind(this, controller)
+    }
+    if (this.parseDirectives) {
+      callbacks.directiveCallback = this.enqueueItem.bind(this, controller)
+    }
+    if (this.parseComments) {
+      callbacks.commentCallback = this.enqueueItem.bind(this, controller)
+    }
+    if (this.parseSequences) {
+      callbacks.sequenceCallback = this.enqueueItem.bind(this, controller)
+    }
+    return callbacks
+  }
+
+  private emitErrorMessage(
+    controller: TransformStreamDefaultController<GFF3Item>,
+    errorMessage: string,
+  ) {
+    controller.error(errorMessage)
+  }
+  private enqueueItem(
+    controller: TransformStreamDefaultController<GFF3Item>,
+    item: GFF3Item,
+  ) {
+    controller.enqueue(item)
+  }
+
+  transform(
+    chunk: Uint8Array,
+    controller: TransformStreamDefaultController<GFF3Item>,
+  ) {
+    // Decode the current chunk to string and prepend the last string
+    const string = `${this.lastString}${this.decoder.decode(chunk, {
+      stream: true,
+    })}`
+    // Extract lines from chunk
+    const lines = string.split(/\r\n|[\r\n]/g)
+    // Save last line, as it might be incomplete
+    this.lastString = lines.pop() || ''
+    // Enqueue each line in the next chunk
+    for (const line of lines) {
+      this.parser.addLine(line, this.makeCallbacks(controller))
+    }
+  }
+
+  flush(controller: TransformStreamDefaultController<GFF3Item>) {
+    const callbacks = this.makeCallbacks(controller)
+    this.lastString = `${this.lastString}${this.decoder.decode()}`
+    if (this.lastString) {
+      this.parser.addLine(this.lastString, callbacks)
+      this.lastString = ''
+    }
+    this.parser.finish(callbacks)
+  }
 }
 
 /**
@@ -159,26 +146,15 @@ export function parseStringSync(
   inputOptions?:
     | {
         disableDerivesFromReferences?: boolean
-        encoding?: BufferEncoding
         bufferSize?: number
       }
     | undefined,
 ): (GFF3Feature | GFF3Sequence)[]
-export function parseStringSync<T extends boolean>(
-  str: string,
-  inputOptions: {
-    parseAll?: T
-    disableDerivesFromReferences?: boolean
-    encoding?: BufferEncoding
-    bufferSize?: number
-  },
-): T extends true ? GFF3Item[] : never
 export function parseStringSync<F extends boolean>(
   str: string,
   inputOptions: {
     disableDerivesFromReferences?: boolean
     parseFeatures: F
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Sequence[]
@@ -187,7 +163,6 @@ export function parseStringSync<D extends boolean>(
   inputOptions: {
     disableDerivesFromReferences?: boolean
     parseDirectives: D
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -197,7 +172,6 @@ export function parseStringSync<C extends boolean>(
   str: string,
   inputOptions: {
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): C extends true
@@ -208,7 +182,6 @@ export function parseStringSync<S extends boolean>(
   inputOptions: {
     disableDerivesFromReferences?: boolean
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): S extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Feature[]
@@ -218,7 +191,6 @@ export function parseStringSync<F extends boolean, D extends boolean>(
     disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseDirectives: D
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -234,7 +206,6 @@ export function parseStringSync<F extends boolean, C extends boolean>(
     disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -250,7 +221,6 @@ export function parseStringSync<F extends boolean, S extends boolean>(
     disableDerivesFromReferences?: boolean
     parseFeatures: F
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -266,7 +236,6 @@ export function parseStringSync<D extends boolean, C extends boolean>(
     disableDerivesFromReferences?: boolean
     parseDirectives: D
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -282,7 +251,6 @@ export function parseStringSync<D extends boolean, S extends boolean>(
     disableDerivesFromReferences?: boolean
     parseDirectives: D
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -298,7 +266,6 @@ export function parseStringSync<C extends boolean, S extends boolean>(
     disableDerivesFromReferences?: boolean
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): C extends true
@@ -319,7 +286,6 @@ export function parseStringSync<
     parseFeatures: F
     parseDirectives: D
     parseComments: C
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -348,7 +314,6 @@ export function parseStringSync<
     parseFeatures: F
     parseDirectives: D
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -377,7 +342,6 @@ export function parseStringSync<
     parseFeatures: F
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -406,7 +370,6 @@ export function parseStringSync<
     parseFeatures: D
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): D extends true
@@ -437,7 +400,6 @@ export function parseStringSync<
     parseDirectives: D
     parseComments: C
     parseSequences: S
-    encoding?: BufferEncoding
     bufferSize?: number
   },
 ): F extends true
@@ -482,20 +444,33 @@ export function parseStringSync(
   const items: GFF3Item[] = []
   const push = items.push.bind(items)
 
-  const parser = new Parser({
-    featureCallback: options.parseFeatures ? push : undefined,
-    directiveCallback: options.parseDirectives ? push : undefined,
-    commentCallback: options.parseComments ? push : undefined,
-    sequenceCallback: options.parseSequences ? push : undefined,
+  const callbacks: ParseCallbacks = {
+    errorCallback: (err: string) => {
+      throw new Error(err)
+    },
+  }
+  if (options.parseFeatures) {
+    callbacks.featureCallback = push
+  }
+  if (options.parseDirectives) {
+    callbacks.directiveCallback = push
+  }
+  if (options.parseComments) {
+    callbacks.commentCallback = push
+  }
+  if (options.parseSequences) {
+    callbacks.sequenceCallback = push
+  }
+
+  const parser = new GFF3Parser({
     disableDerivesFromReferences: options.disableDerivesFromReferences || false,
     bufferSize: Infinity,
-    errorCallback: (err) => {
-      throw err
-    },
   })
 
-  str.split(/\r?\n/).forEach(parser.addLine.bind(parser))
-  parser.finish()
+  str
+    .split(/\r\n|[\r\n]/)
+    .forEach((line) => parser.addLine.bind(parser)(line, callbacks))
+  parser.finish(callbacks)
 
   return items
 }
@@ -515,7 +490,9 @@ export function formatSync(items: GFF3Item[]): string {
     if ('sequence' in i) sequences.push(i)
     else other.push(i)
   })
-  let str = other.map(formatItem).join('')
+  let str = other
+    .map((o) => (Array.isArray(o) ? formatItem(o).join('') : formatItem(o)))
+    .join('')
   if (sequences.length) {
     str += '##FASTA\n'
     str += sequences.map(formatSequence).join('')
@@ -523,55 +500,72 @@ export function formatSync(items: GFF3Item[]): string {
   return str
 }
 
-interface FormatOptions {
+/** Formatter options */
+export interface FormatOptions {
+  /**
+   * The minimum number of lines to emit between sync (###) directives, default
+   * 100
+   */
   minSyncLines?: number
+  /**
+   * Whether to insert a version directive at the beginning of a formatted
+   * stream if one does not exist already, default true
+   */
   insertVersionDirective?: boolean
-  encoding?: BufferEncoding
 }
 
-class FormattingTransform extends Transform {
+/**
+ * Transform a stream of features, directives, comments and/or sequences into a
+ * stream of GFF3 text.
+ *
+ * Inserts synchronization (###) marks automatically.
+ */
+export class GFFFormattingTransformer implements Transformer<GFF3Item, string> {
   linesSinceLastSyncMark = 0
   haveWeEmittedData = false
   fastaMode = false
   minLinesBetweenSyncMarks: number
   insertVersionDirective: boolean
+  /**
+   * Options for how the output text stream is formatted
+   * @param options - Formatter options
+   */
   constructor(options: FormatOptions = {}) {
-    super(Object.assign(options, { objectMode: true }))
     this.minLinesBetweenSyncMarks = options.minSyncLines || 100
-    this.insertVersionDirective = options.insertVersionDirective || false
+    this.insertVersionDirective =
+      options.insertVersionDirective === false ? false : true
   }
 
-  _transform(
-    chunk: GFF3Item[],
-    _encoding: BufferEncoding,
-    callback: TransformCallback,
+  transform(
+    chunk: GFF3Item,
+    controller: TransformStreamDefaultController<string>,
   ) {
-    // if we have not emitted anything yet, and this first
-    // chunk is not a gff-version directive, emit one
-    let str
-    if (!this.haveWeEmittedData && this.insertVersionDirective) {
-      const thisChunk = Array.isArray(chunk) ? chunk[0] : chunk
-      if ('directive' in thisChunk) {
-        if (thisChunk.directive !== 'gff-version') {
-          this.push('##gff-version 3\n')
-        }
-      }
+    // if we have not emitted anything yet, and this first chunk is not a
+    // gff-version directive, emit one
+    let str: string
+    if (
+      !this.haveWeEmittedData &&
+      this.insertVersionDirective &&
+      (!('directive' in chunk) ||
+        ('directive' in chunk && chunk.directive !== 'gff-version'))
+    ) {
+      controller.enqueue('##gff-version 3\n')
     }
 
-    // if it's a sequence chunk coming down, emit a FASTA directive and
-    // change to FASTA mode
+    // if it's a sequence chunk coming down, emit a FASTA directive and change
+    // to FASTA mode
     if ('sequence' in chunk && !this.fastaMode) {
-      this.push('##FASTA\n')
+      controller.enqueue('##FASTA\n')
       this.fastaMode = true
     }
 
-    if (Array.isArray(chunk)) str = chunk.map(formatItem).join('')
+    if (Array.isArray(chunk)) str = chunk.map((c) => formatItem(c)).join('')
     else str = formatItem(chunk)
 
-    this.push(str)
+    controller.enqueue(str)
 
     if (this.linesSinceLastSyncMark >= this.minLinesBetweenSyncMarks) {
-      this.push('###\n')
+      controller.enqueue('###\n')
       this.linesSinceLastSyncMark = 0
     } else {
       // count the number of newlines in this chunk
@@ -583,49 +577,5 @@ class FormattingTransform extends Transform {
     }
 
     this.haveWeEmittedData = true
-    _callback(callback)
   }
-}
-
-/**
- * Format a stream of features, directives, comments and/or sequences into a
- * stream of GFF3 text.
- *
- * Inserts synchronization (###) marks automatically.
- *
- * @param options - parser options
- */
-export function formatStream(options: FormatOptions = {}): FormattingTransform {
-  return new FormattingTransform(options)
-}
-
-/**
- * Format a stream of features, directives, comments and/or sequences into a
- * GFF3 file and write it to the filesystem.
-
- * Inserts synchronization (###) marks and a ##gff-version
- * directive automatically (if one is not already present).
- *
- * @param stream - the stream to write to the file
- * @param filename - the file path to write to
- * @param options - parser options
- * @returns promise for null that resolves when the stream has been written
- */
-export function formatFile(
-  stream: Readable,
-  writeStream: Writable,
-  options: FormatOptions = {},
-): Promise<null> {
-  const newOptions = {
-    insertVersionDirective: true,
-    ...options,
-  }
-
-  return new Promise((resolve, reject) => {
-    stream
-      .pipe(new FormattingTransform(newOptions))
-      .on('end', () => resolve(null))
-      .on('error', reject)
-      .pipe(writeStream)
-  })
 }
