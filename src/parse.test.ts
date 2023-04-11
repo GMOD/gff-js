@@ -74,7 +74,7 @@ describe('GFF3 parser', () => {
     [51, 'au9_scaffold_subset.gff3'],
     [14, 'tomato_chr4_head.gff3'],
     [5, 'directives.gff3'],
-    [5, 'hybrid1.gff3'],
+    [6, 'hybrid1.gff3'],
     [3, 'hybrid2.gff3'],
     [6, 'knownGene.gff3'],
     [6, 'knownGene2.gff3'],
