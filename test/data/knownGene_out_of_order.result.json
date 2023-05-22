@@ -17,9 +17,7 @@
       "strand": "-",
       "phase": null,
       "attributes": {
-        "ID": [
-          "A00469"
-        ],
+        "ID": ["A00469"],
         "Dbxref": [
           "AFFX-U133:205840_x_at",
           "Locuslink:2688",
@@ -29,12 +27,8 @@
           "AFFX-U95:1332_f_at",
           "Swissprot:SOMA_HUMAN"
         ],
-        "Note": [
-          "growth hormone 1"
-        ],
-        "Alias": [
-          "GH1"
-        ]
+        "Note": ["growth hormone 1"],
+        "Alias": ["GH1"]
       },
       "child_features": [
         [
@@ -48,9 +42,7 @@
             "strand": "-",
             "phase": "1",
             "attributes": {
-              "Parent": [
-                "A00469"
-              ]
+              "Parent": ["A00469"]
             },
             "child_features": [],
             "derived_features": []
@@ -67,13 +59,8 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Derives_from": [
-                "A00469"
-              ],
-              "Parent": [
-                "AB000114",
-                "A00469"
-              ],
+              "Derives_from": ["A00469"],
+              "Parent": ["AB000114", "A00469"],
               "Note": [
                 "crazy multi-parent out-of-order thing, also including a Derives_from"
               ]
@@ -93,9 +80,7 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Parent": [
-                "A00469"
-              ]
+              "Parent": ["A00469"]
             },
             "child_features": [],
             "derived_features": []
@@ -112,9 +97,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "A00469"
-              ]
+              "Parent": ["A00469"]
             },
             "child_features": [],
             "derived_features": []
@@ -131,9 +114,7 @@
             "strand": "-",
             "phase": "1",
             "attributes": {
-              "Parent": [
-                "A00469"
-              ]
+              "Parent": ["A00469"]
             },
             "child_features": [],
             "derived_features": []
@@ -150,9 +131,7 @@
             "strand": "-",
             "phase": "1",
             "attributes": {
-              "Parent": [
-                "A00469"
-              ]
+              "Parent": ["A00469"]
             },
             "child_features": [],
             "derived_features": []
@@ -169,9 +148,7 @@
             "strand": "-",
             "phase": "0",
             "attributes": {
-              "Parent": [
-                "A00469"
-              ]
+              "Parent": ["A00469"]
             },
             "child_features": [],
             "derived_features": []
@@ -188,9 +165,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "A00469"
-              ]
+              "Parent": ["A00469"]
             },
             "child_features": [],
             "derived_features": []
@@ -207,13 +182,8 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Derives_from": [
-                "A00469"
-              ],
-              "Parent": [
-                "AB000114",
-                "A00469"
-              ],
+              "Derives_from": ["A00469"],
+              "Parent": ["AB000114", "A00469"],
               "Note": [
                 "crazy multi-parent thing, but this time coming after its parents"
               ]
@@ -235,13 +205,8 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Derives_from": [
-                "A00469"
-              ],
-              "Parent": [
-                "AB000114",
-                "A00469"
-              ],
+              "Derives_from": ["A00469"],
+              "Parent": ["AB000114", "A00469"],
               "Note": [
                 "crazy multi-parent out-of-order thing, also including a Derives_from"
               ]
@@ -261,13 +226,8 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Derives_from": [
-                "A00469"
-              ],
-              "Parent": [
-                "AB000114",
-                "A00469"
-              ],
+              "Derives_from": ["A00469"],
+              "Parent": ["AB000114", "A00469"],
               "Note": [
                 "crazy multi-parent thing, but this time coming after its parents"
               ]
@@ -290,14 +250,8 @@
       "strand": "-",
       "phase": null,
       "attributes": {
-        "ID": [
-          "AB000114"
-        ],
-        "Ontology_term": [
-          "GO:0007155",
-          "GO:0005194",
-          "GO:0005578"
-        ],
+        "ID": ["AB000114"],
+        "Ontology_term": ["GO:0007155", "GO:0005194", "GO:0005578"],
         "Dbxref": [
           "AFFX-U95:41031_at",
           "Genbank-protein:BAA19055",
@@ -312,12 +266,8 @@
           "PFAM:PF01462",
           "PFAM:00560"
         ],
-        "Note": [
-          "osteomodulin"
-        ],
-        "Alias": [
-          "OMD"
-        ]
+        "Note": ["osteomodulin"],
+        "Alias": ["OMD"]
       },
       "child_features": [
         [
@@ -331,13 +281,8 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Derives_from": [
-                "A00469"
-              ],
-              "Parent": [
-                "AB000114",
-                "A00469"
-              ],
+              "Derives_from": ["A00469"],
+              "Parent": ["AB000114", "A00469"],
               "Note": [
                 "crazy multi-parent out-of-order thing, also including a Derives_from"
               ]
@@ -357,9 +302,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -376,9 +319,7 @@
             "strand": "-",
             "phase": "1",
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -395,9 +336,7 @@
             "strand": "-",
             "phase": "0",
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -414,13 +353,8 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Derives_from": [
-                "A00469"
-              ],
-              "Parent": [
-                "AB000114",
-                "A00469"
-              ],
+              "Derives_from": ["A00469"],
+              "Parent": ["AB000114", "A00469"],
               "Note": [
                 "crazy multi-parent thing, but this time coming after its parents"
               ]
@@ -440,9 +374,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -459,9 +391,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -480,12 +410,8 @@
       "strand": "-",
       "phase": null,
       "attributes": {
-        "ID": [
-          "AB000114"
-        ],
-        "Note": [
-          "guess what this thing has another location"
-        ]
+        "ID": ["AB000114"],
+        "Note": ["guess what this thing has another location"]
       },
       "child_features": [
         [
@@ -499,9 +425,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -518,9 +442,7 @@
             "strand": "-",
             "phase": "1",
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -537,9 +459,7 @@
             "strand": "-",
             "phase": "0",
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -556,13 +476,8 @@
             "strand": "-",
             "phase": "2",
             "attributes": {
-              "Derives_from": [
-                "A00469"
-              ],
-              "Parent": [
-                "AB000114",
-                "A00469"
-              ],
+              "Derives_from": ["A00469"],
+              "Parent": ["AB000114", "A00469"],
               "Note": [
                 "crazy multi-parent thing, but this time coming after its parents"
               ]
@@ -582,9 +497,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -601,9 +514,7 @@
             "strand": "-",
             "phase": null,
             "attributes": {
-              "Parent": [
-                "AB000114"
-              ]
+              "Parent": ["AB000114"]
             },
             "child_features": [],
             "derived_features": []
@@ -624,15 +535,9 @@
       "strand": "+",
       "phase": null,
       "attributes": {
-        "ID": [
-          "blastresult.1"
-        ],
-        "Target": [
-          "BC046356.1 178 1828"
-        ],
-        "Gap": [
-          "M78 I759 M1561"
-        ]
+        "ID": ["blastresult.1"],
+        "Target": ["BC046356.1 178 1828"],
+        "Gap": ["M78 I759 M1561"]
       },
       "child_features": [],
       "derived_features": []

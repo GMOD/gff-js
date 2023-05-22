@@ -75,7 +75,7 @@ export default class Parser {
     {}
   private _completedReferences: Record<
     string,
-    Record<string, boolean | undefined> | undefined
+    Record<string, boolean> | undefined
   > = {}
   // features that reference something we have not seen yet
   // structured as:
@@ -323,7 +323,7 @@ export default class Parser {
   ) {
     // this is all a bit more awkward in javascript than it was in perl
     function postSet(
-      obj: Record<string, Record<string, boolean | undefined> | undefined>,
+      obj: Record<string, Record<string, boolean> | undefined>,
       slot1: string,
       slot2: string,
     ) {

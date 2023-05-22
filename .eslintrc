@@ -4,9 +4,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],
-  "plugins": [
-    "eslint-plugin-tsdoc"
-  ],
+  "plugins": ["eslint-plugin-tsdoc"],
   "rules": {
     "tsdoc/syntax": "warn",
     "no-underscore-dangle": 0,
