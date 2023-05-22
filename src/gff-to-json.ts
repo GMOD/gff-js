@@ -1,5 +1,5 @@
 import gff from './index'
-let itemBuffer: any
+let itemBuffer: string | undefined
 
 process.stdout.write('[\n')
 process.stdin
