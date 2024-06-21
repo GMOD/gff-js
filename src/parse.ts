@@ -21,14 +21,18 @@ export class FASTAParser {
     if (defMatch) {
       this._flush()
       this.currentSequence = { id: defMatch[1], sequence: '' }
-      if (defMatch[2]) this.currentSequence.description = defMatch[2].trim()
+      if (defMatch[2]) {
+        this.currentSequence.description = defMatch[2].trim()
+      }
     } else if (this.currentSequence && /\S/.test(line)) {
-      this.currentSequence.sequence += line.replace(/\s/g, '')
+      this.currentSequence.sequence += line.replaceAll(/\s/g, '')
     }
   }
 
   private _flush() {
-    if (this.currentSequence) this.seqCallback(this.currentSequence)
+    if (this.currentSequence) {
+      this.seqCallback(this.currentSequence)
+    }
   }
 
   finish(): void {
@@ -156,44 +160,46 @@ export default class Parser {
       this.fastaParser.addLine(line)
     } else {
       // it's a parse error
-      const errLine = line.replace(/\r?\n?$/g, '')
+      const errLine = line.replaceAll(/\r?\n?$/g, '')
       throw new Error(`GFF3 parse error.  Cannot parse '${errLine}'.`)
     }
   }
 
   finish(): void {
     this._emitAllUnderConstructionFeatures()
-    if (this.fastaParser) this.fastaParser.finish()
+    if (this.fastaParser) {
+      this.fastaParser.finish()
+    }
     this.endCallback()
   }
 
   private _emitItem(
     i: GFF3.GFF3Feature | GFF3.GFF3Directive | GFF3.GFF3Comment,
   ) {
-    if (Array.isArray(i)) this.featureCallback(i)
-    else if ('directive' in i) this.directiveCallback(i)
-    else if ('comment' in i) this.commentCallback(i)
+    if (Array.isArray(i)) {
+      this.featureCallback(i)
+    } else if ('directive' in i) {
+      this.directiveCallback(i)
+    } else if ('comment' in i) {
+      this.commentCallback(i)
+    }
   }
 
   private _enforceBufferSizeLimit(additionalItemCount = 0) {
     const _unbufferItem = (item?: GFF3.GFF3Feature) => {
-      if (
-        item &&
-        Array.isArray(item) &&
-        item[0].attributes &&
-        item[0].attributes.ID &&
-        item[0].attributes.ID[0]
-      ) {
+      if (item && Array.isArray(item) && item[0].attributes?.ID?.[0]) {
         const ids = item[0].attributes.ID
         ids.forEach((id) => {
           delete this._underConstructionById[id]
           delete this._completedReferences[id]
         })
         item.forEach((i) => {
-          if (i.child_features)
+          if (i.child_features) {
             i.child_features.forEach((c) => _unbufferItem(c))
-          if (i.derived_features)
+          }
+          if (i.derived_features) {
             i.derived_features.forEach((d) => _unbufferItem(d))
+          }
         })
       }
     }
@@ -227,7 +233,7 @@ export default class Parser {
       throw new Error(
         `some features reference other features that do not exist in the file (or in the same '###' scope). ${Object.keys(
           this._underConstructionOrphans,
-        )}`,
+        ).join(',')}`,
       )
     }
   }
@@ -301,7 +307,9 @@ export default class Parser {
     //     'Parent' : [ orphans that have a Parent attr referencing this feature ],
     //     'Derives_from' : [ orphans that have a Derives_from attr referencing this feature ],
     //    }
-    if (!references) return
+    if (!references) {
+      return
+    }
     feature.forEach((loc) => {
       loc.child_features.push(...references.Parent)
     })

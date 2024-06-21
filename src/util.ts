@@ -8,7 +8,7 @@
  * @returns An unescaped string value
  */
 export function unescape(stringVal: string): string {
-  return stringVal.replace(/%([0-9A-Fa-f]{2})/g, (_match, seq) =>
+  return stringVal.replaceAll(/%([0-9A-Fa-f]{2})/g, (_match, seq) =>
     String.fromCharCode(parseInt(seq, 16)),
   )
 }
@@ -27,7 +27,7 @@ function _escape(regex: RegExp, s: string | number) {
  * @returns An escaped string value
  */
 export function escape(rawVal: string | number): string {
-  return _escape(/[\n;\r\t=%&,\x00-\x1f\x7f-\xff]/g, rawVal)
+  return _escape(/[\n;\r\t=%&,\u0000-\u001f\u007f-\u00ff]/g, rawVal)
 }
 
 /**
@@ -37,7 +37,7 @@ export function escape(rawVal: string | number): string {
  * @returns An escaped column value
  */
 export function escapeColumn(rawVal: string | number): string {
-  return _escape(/[\n\r\t%\x00-\x1f\x7f-\xff]/g, rawVal)
+  return _escape(/[\n\r\t%\u0000-\u001f\u007f-\u00ff]/g, rawVal)
 }
 
 /**
@@ -47,7 +47,9 @@ export function escapeColumn(rawVal: string | number): string {
  * @returns Parsed attributes
  */
 export function parseAttributes(attrString: string): GFF3Attributes {
-  if (!(attrString && attrString.length) || attrString === '.') return {}
+  if (!attrString?.length || attrString === '.') {
+    return {}
+  }
 
   const attrs: GFF3Attributes = {}
 
@@ -56,7 +58,9 @@ export function parseAttributes(attrString: string): GFF3Attributes {
     .split(';')
     .forEach((a) => {
       const nv = a.split('=', 2)
-      if (!(nv[1] && nv[1].length)) return
+      if (!nv[1]?.length) {
+        return
+      }
 
       nv[0] = nv[0].trim()
       let arec = attrs[nv[0].trim()]
@@ -114,7 +118,9 @@ export function parseDirective(
   | GFF3GenomeBuildDirective
   | null {
   const match = /^\s*##\s*(\S+)\s*(.*)/.exec(line)
-  if (!match) return null
+  if (!match) {
+    return null
+  }
 
   const [, name] = match
   let [, , contents] = match
@@ -131,8 +137,8 @@ export function parseDirective(
     return {
       ...parsed,
       seq_id: c[0],
-      start: c[1] && c[1].replace(/\D/g, ''),
-      end: c[2] && c[2].replace(/\D/g, ''),
+      start: c[1]?.replaceAll(/\D/g, ''),
+      end: c[2]?.replaceAll(/\D/g, ''),
     } as GFF3SequenceRegionDirective
   } else if (name === 'genome-build') {
     const [source, buildName] = contents.split(/\s+/, 2)
@@ -155,7 +161,9 @@ export function parseDirective(
 export function formatAttributes(attrs: GFF3Attributes): string {
   const attrOrder: string[] = []
   Object.entries(attrs).forEach(([tag, val]) => {
-    if (!val) return
+    if (!val) {
+      return
+    }
     let valstring
     if (val.hasOwnProperty('toString')) {
       valstring = escape(val.toString())
@@ -249,7 +257,9 @@ export function formatFeature(
  */
 export function formatDirective(directive: GFF3Directive): string {
   let str = `##${directive.directive}`
-  if (directive.value) str += ` ${directive.value}`
+  if (directive.value) {
+    str += ` ${directive.value}`
+  }
   str += '\n'
   return str
 }
@@ -295,10 +305,18 @@ export function formatItem(
   function formatSingleItem(
     item: GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence,
   ) {
-    if ('attributes' in item) return formatFeature(item)
-    if ('directive' in item) return formatDirective(item)
-    if ('sequence' in item) return formatSequence(item)
-    if ('comment' in item) return formatComment(item)
+    if ('attributes' in item) {
+      return formatFeature(item)
+    }
+    if ('directive' in item) {
+      return formatDirective(item)
+    }
+    if ('sequence' in item) {
+      return formatSequence(item)
+    }
+    if ('comment' in item) {
+      return formatComment(item)
+    }
     return '# (invalid item found during format)\n'
   }
 

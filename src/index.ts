@@ -4,13 +4,6 @@ import {
   formatSync,
   formatStream,
   formatFile,
-  GFF3Comment,
-  GFF3Directive,
-  GFF3Feature,
-  GFF3FeatureLine,
-  GFF3FeatureLineWithRefs,
-  GFF3Sequence,
-  GFF3Item,
 } from './api'
 
 import * as util from './util'
@@ -24,12 +17,12 @@ export default {
   util,
 }
 
-export type {
-  GFF3Comment,
-  GFF3Directive,
-  GFF3Feature,
-  GFF3FeatureLine,
-  GFF3FeatureLineWithRefs,
-  GFF3Sequence,
-  GFF3Item,
-}
+export {
+  type GFF3Comment,
+  type GFF3Feature,
+  type GFF3Directive,
+  type GFF3FeatureLineWithRefs,
+  type GFF3FeatureLine,
+  type GFF3Item,
+  type GFF3Sequence,
+} from './api'

@@ -20,7 +20,7 @@ describe('GFF3 formatting', () => {
         const expectedGFF3 = fs
           .readFileSync(require.resolve(`./data/${file}.reformatted.gff3`))
           .toString('utf8')
-          .replace(/###\n/g, '') // formatSync does not insert sync marks
+          .replaceAll('###\n', '') // formatSync does not insert sync marks
 
         const items = gff.parseStringSync(inputGFF3, { parseAll: true })
         const resultGFF3 = gff.formatSync(items)

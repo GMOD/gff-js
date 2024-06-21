@@ -43,10 +43,15 @@ function readAll(
       )
       .on('data', (d) => {
         stuff.all.push(d)
-        if (d.directive) stuff.directives.push(d)
-        else if (d.comment) stuff.comments.push(d)
-        else if (d.sequence) stuff.sequences.push(d)
-        else stuff.features.push(d)
+        if (d.directive) {
+          stuff.directives.push(d)
+        } else if (d.comment) {
+          stuff.comments.push(d)
+        } else if (d.sequence) {
+          stuff.sequences.push(d)
+        } else {
+          stuff.features.push(d)
+        }
       })
       .on('end', () => {
         resolve(stuff)
@@ -255,37 +260,39 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g0988
     expect(result).toEqual(referenceResult)
     expect(`\n${formatFeature(referenceResult[0])}`).toEqual(gff3)
   })
-  ;[
+  ;(
     [
-      'hybrid1.gff3',
       [
-        {
-          id: 'A00469',
-          sequence: 'GATTACAGATTACA',
-        },
-        {
-          id: 'zonker',
-          sequence:
-            'AAAAAACTAGCATGATCGATCGATCGATCGATATTAGCATGCATGCATGATGATGATAGCTATGATCGATCCCCCCCAAAAAACTAGCATGATCGATCGATCGATCGATATTAGCATGCATGCATGATGATGATAGCTATGATCGATCCCCCCC',
-        },
-        {
-          id: 'zeebo',
-          description: 'this is a test description',
-          sequence:
-            'AAAAACTAGTAGCTAGCTAGCTGATCATAGATCGATGCATGGCATACTGACTGATCGACCCCCC',
-        },
+        'hybrid1.gff3',
+        [
+          {
+            id: 'A00469',
+            sequence: 'GATTACAGATTACA',
+          },
+          {
+            id: 'zonker',
+            sequence:
+              'AAAAAACTAGCATGATCGATCGATCGATCGATATTAGCATGCATGCATGATGATGATAGCTATGATCGATCCCCCCCAAAAAACTAGCATGATCGATCGATCGATCGATATTAGCATGCATGCATGATGATGATAGCTATGATCGATCCCCCCC',
+          },
+          {
+            id: 'zeebo',
+            description: 'this is a test description',
+            sequence:
+              'AAAAACTAGTAGCTAGCTAGCTGATCATAGATCGATGCATGGCATACTGACTGATCGACCCCCC',
+          },
+        ],
       ],
-    ],
-    [
-      'hybrid2.gff3',
       [
-        {
-          id: 'A00469',
-          sequence: 'GATTACAWATTACABATTACAGATTACA',
-        },
+        'hybrid2.gff3',
+        [
+          {
+            id: 'A00469',
+            sequence: 'GATTACAWATTACABATTACAGATTACA',
+          },
+        ],
       ],
-    ],
-  ].forEach(([filename, expectedOutput]) => {
+    ] as const
+  ).forEach(([filename, expectedOutput]) => {
     it(`can parse FASTA sections in hybrid ${filename} file`, async () => {
       const stuff = await readAll(`./data/${filename}`)
       expect(stuff.sequences).toEqual(expectedOutput)

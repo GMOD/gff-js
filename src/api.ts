@@ -8,21 +8,9 @@ import {
   GFF3Comment,
   GFF3Directive,
   GFF3Feature,
-  GFF3FeatureLine,
-  GFF3FeatureLineWithRefs,
   GFF3Sequence,
   GFF3Item,
 } from './util'
-
-export type {
-  GFF3Comment,
-  GFF3Directive,
-  GFF3Feature,
-  GFF3FeatureLine,
-  GFF3FeatureLineWithRefs,
-  GFF3Sequence,
-  GFF3Item,
-}
 
 /** Parser options */
 export interface ParseOptions {
@@ -52,8 +40,11 @@ type ParseOptionsProcessed = Required<Omit<ParseOptions, 'parseAll'>>
 // call a callback on the next process tick if running in
 // an environment that supports it
 function _callback(callback: TransformCallback) {
-  if (process && process.nextTick) process.nextTick(callback)
-  else callback()
+  if (process?.nextTick) {
+    process.nextTick(callback)
+  } else {
+    callback()
+  }
 }
 
 // shared arg processing for the parse routines
@@ -128,8 +119,12 @@ class GFFTransform extends Transform {
   }
 
   _flush(callback: TransformCallback) {
-    if (this.decoder.end) this._nextText(this.decoder.end())
-    if (this.textBuffer != null) this._addLine(this.textBuffer)
+    if (this.decoder.end) {
+      this._nextText(this.decoder.end())
+    }
+    if (this.textBuffer != null) {
+      this._addLine(this.textBuffer)
+    }
     this.parser.finish()
     _callback(callback)
   }
@@ -226,8 +221,8 @@ export function parseStringSync<F extends boolean, D extends boolean>(
     ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
     : (GFF3Feature | GFF3Sequence)[]
   : D extends true
-  ? (GFF3Directive | GFF3Sequence)[]
-  : GFF3Sequence[]
+    ? (GFF3Directive | GFF3Sequence)[]
+    : GFF3Sequence[]
 export function parseStringSync<F extends boolean, C extends boolean>(
   str: string,
   inputOptions: {
@@ -242,8 +237,8 @@ export function parseStringSync<F extends boolean, C extends boolean>(
     ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
     : (GFF3Feature | GFF3Sequence)[]
   : C extends true
-  ? (GFF3Comment | GFF3Sequence)[]
-  : GFF3Sequence[]
+    ? (GFF3Comment | GFF3Sequence)[]
+    : GFF3Sequence[]
 export function parseStringSync<F extends boolean, S extends boolean>(
   str: string,
   inputOptions: {
@@ -258,8 +253,8 @@ export function parseStringSync<F extends boolean, S extends boolean>(
     ? (GFF3Feature | GFF3Sequence)[]
     : GFF3Feature[]
   : S extends true
-  ? GFF3Sequence[]
-  : []
+    ? GFF3Sequence[]
+    : []
 export function parseStringSync<D extends boolean, C extends boolean>(
   str: string,
   inputOptions: {
@@ -274,8 +269,8 @@ export function parseStringSync<D extends boolean, C extends boolean>(
     ? (GFF3Feature | GFF3Directive | GFF3Comment | GFF3Sequence)[]
     : (GFF3Feature | GFF3Directive | GFF3Sequence)[]
   : C extends true
-  ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-  : (GFF3Feature | GFF3Sequence)[]
+    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+    : (GFF3Feature | GFF3Sequence)[]
 export function parseStringSync<D extends boolean, S extends boolean>(
   str: string,
   inputOptions: {
@@ -290,8 +285,8 @@ export function parseStringSync<D extends boolean, S extends boolean>(
     ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
     : (GFF3Feature | GFF3Directive)[]
   : S extends true
-  ? (GFF3Feature | GFF3Sequence)[]
-  : GFF3Feature[]
+    ? (GFF3Feature | GFF3Sequence)[]
+    : GFF3Feature[]
 export function parseStringSync<C extends boolean, S extends boolean>(
   str: string,
   inputOptions: {
@@ -306,8 +301,8 @@ export function parseStringSync<C extends boolean, S extends boolean>(
     ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
     : (GFF3Feature | GFF3Comment)[]
   : S extends true
-  ? (GFF3Feature | GFF3Sequence)[]
-  : GFF3Feature[]
+    ? (GFF3Feature | GFF3Sequence)[]
+    : GFF3Feature[]
 export function parseStringSync<
   F extends boolean,
   D extends boolean,
@@ -328,15 +323,15 @@ export function parseStringSync<
       ? GFF3Item[]
       : (GFF3Feature | GFF3Directive | GFF3Sequence)[]
     : C extends true
-    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Sequence)[]
+      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+      : (GFF3Feature | GFF3Sequence)[]
   : D extends true
-  ? C extends true
-    ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
-    : (GFF3Directive | GFF3Sequence)[]
-  : C extends true
-  ? (GFF3Comment | GFF3Sequence)[]
-  : GFF3Sequence[]
+    ? C extends true
+      ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
+      : (GFF3Directive | GFF3Sequence)[]
+    : C extends true
+      ? (GFF3Comment | GFF3Sequence)[]
+      : GFF3Sequence[]
 export function parseStringSync<
   F extends boolean,
   D extends boolean,
@@ -357,15 +352,15 @@ export function parseStringSync<
       ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
       : (GFF3Feature | GFF3Directive)[]
     : S extends true
-    ? (GFF3Feature | GFF3Sequence)[]
-    : GFF3Feature[]
+      ? (GFF3Feature | GFF3Sequence)[]
+      : GFF3Feature[]
   : D extends true
-  ? S extends true
-    ? (GFF3Directive | GFF3Sequence)[]
-    : GFF3Directive[]
-  : S extends true
-  ? GFF3Sequence[]
-  : []
+    ? S extends true
+      ? (GFF3Directive | GFF3Sequence)[]
+      : GFF3Directive[]
+    : S extends true
+      ? GFF3Sequence[]
+      : []
 export function parseStringSync<
   F extends boolean,
   C extends boolean,
@@ -386,15 +381,15 @@ export function parseStringSync<
       ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
       : (GFF3Feature | GFF3Comment)[]
     : S extends true
-    ? (GFF3Feature | GFF3Sequence)[]
-    : GFF3Feature[]
+      ? (GFF3Feature | GFF3Sequence)[]
+      : GFF3Feature[]
   : C extends true
-  ? S extends true
-    ? (GFF3Comment | GFF3Sequence)[]
-    : GFF3Comment[]
-  : S extends true
-  ? GFF3Sequence[]
-  : []
+    ? S extends true
+      ? (GFF3Comment | GFF3Sequence)[]
+      : GFF3Comment[]
+    : S extends true
+      ? GFF3Sequence[]
+      : []
 export function parseStringSync<
   D extends boolean,
   C extends boolean,
@@ -415,15 +410,15 @@ export function parseStringSync<
       ? GFF3Item[]
       : (GFF3Feature | GFF3Directive | GFF3Comment)[]
     : S extends true
-    ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Directive)[]
+      ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+      : (GFF3Feature | GFF3Directive)[]
   : C extends true
-  ? S extends true
-    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Comment)[]
-  : S extends true
-  ? (GFF3Feature | GFF3Sequence)[]
-  : GFF3Feature[]
+    ? S extends true
+      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+      : (GFF3Feature | GFF3Comment)[]
+    : S extends true
+      ? (GFF3Feature | GFF3Sequence)[]
+      : GFF3Feature[]
 export function parseStringSync<
   F extends boolean,
   D extends boolean,
@@ -447,35 +442,37 @@ export function parseStringSync<
         ? GFF3Item[]
         : (GFF3Feature | GFF3Directive | GFF3Comment)[]
       : S extends true
-      ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-      : (GFF3Feature | GFF3Directive)[]
+        ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
+        : (GFF3Feature | GFF3Directive)[]
     : C extends true
-    ? S extends true
-      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-      : (GFF3Feature | GFF3Comment)[]
-    : S extends true
-    ? (GFF3Feature | GFF3Sequence)[]
-    : GFF3Feature[]
+      ? S extends true
+        ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
+        : (GFF3Feature | GFF3Comment)[]
+      : S extends true
+        ? (GFF3Feature | GFF3Sequence)[]
+        : GFF3Feature[]
   : D extends true
-  ? C extends true
-    ? S extends true
-      ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
-      : (GFF3Directive | GFF3Comment)[]
-    : S extends true
-    ? (GFF3Directive | GFF3Sequence)[]
-    : GFF3Directive[]
-  : C extends true
-  ? S extends true
-    ? (GFF3Comment | GFF3Sequence)[]
-    : GFF3Comment[]
-  : S extends true
-  ? GFF3Sequence[]
-  : []
+    ? C extends true
+      ? S extends true
+        ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
+        : (GFF3Directive | GFF3Comment)[]
+      : S extends true
+        ? (GFF3Directive | GFF3Sequence)[]
+        : GFF3Directive[]
+    : C extends true
+      ? S extends true
+        ? (GFF3Comment | GFF3Sequence)[]
+        : GFF3Comment[]
+      : S extends true
+        ? GFF3Sequence[]
+        : []
 export function parseStringSync(
   str: string,
   inputOptions: ParseOptions = {},
 ): GFF3Item[] {
-  if (!str) return []
+  if (!str) {
+    return []
+  }
 
   const options = _processParseOptions(inputOptions)
 
@@ -512,8 +509,11 @@ export function formatSync(items: GFF3Item[]): string {
   const other: (GFF3Feature | GFF3Directive | GFF3Comment)[] = []
   const sequences: GFF3Sequence[] = []
   items.forEach((i) => {
-    if ('sequence' in i) sequences.push(i)
-    else other.push(i)
+    if ('sequence' in i) {
+      sequences.push(i)
+    } else {
+      other.push(i)
+    }
   })
   let str = other.map(formatItem).join('')
   if (sequences.length) {
@@ -548,7 +548,6 @@ class FormattingTransform extends Transform {
   ) {
     // if we have not emitted anything yet, and this first
     // chunk is not a gff-version directive, emit one
-    let str
     if (!this.haveWeEmittedData && this.insertVersionDirective) {
       const thisChunk = Array.isArray(chunk) ? chunk[0] : chunk
       if ('directive' in thisChunk) {
@@ -565,8 +564,9 @@ class FormattingTransform extends Transform {
       this.fastaMode = true
     }
 
-    if (Array.isArray(chunk)) str = chunk.map(formatItem).join('')
-    else str = formatItem(chunk)
+    const str = Array.isArray(chunk)
+      ? chunk.map(formatItem).join('')
+      : formatItem(chunk)
 
     this.push(str)
 
@@ -576,8 +576,11 @@ class FormattingTransform extends Transform {
     } else {
       // count the number of newlines in this chunk
       let count = 0
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < str.length; i += 1) {
-        if (str[i] === '\n') count += 1
+        if (str[i] === '\n') {
+          count += 1
+        }
       }
       this.linesSinceLastSyncMark += count
     }
@@ -629,3 +632,13 @@ export function formatFile(
       .pipe(writeStream)
   })
 }
+
+export {
+  type GFF3FeatureLine,
+  type GFF3Comment,
+  type GFF3FeatureLineWithRefs,
+  type GFF3Directive,
+  type GFF3Sequence,
+  type GFF3Feature,
+  type GFF3Item,
+} from './util'
