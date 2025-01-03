@@ -6,6 +6,8 @@ Read and write GFF3 data performantly. This module aims to be a complete
 implementation of the [GFF3
 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md).
 
+**NOTE: this module uses the NPM stream package, which requires node.js polyfills for use on the web. We also created the https://github.com/cmdcolin/gff-nostream package to allow a non-streaming version that does not require polyfills**
+
 - streaming parsing and streaming formatting
 - proper escaping and unescaping of attribute and column values
 - supports features with multiple locations and features with multiple parents
