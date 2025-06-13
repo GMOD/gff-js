@@ -21,7 +21,7 @@ export interface ParseOptions {
   parseComments?: boolean
   /** Whether to parse sequences, default true */
   parseSequences?: boolean
-  /** Maximum number of GFF3 lines to buffer, default 50000 */
+  /** Maximum number of GFF3 lines to buffer, default Infinity */
   bufferSize?: number
 }
 
@@ -34,7 +34,7 @@ function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
     parseDirectives: false,
     parseSequences: true,
     parseComments: false,
-    bufferSize: 50000,
+    bufferSize: Infinity,
     disableDerivesFromReferences: false,
     ...options,
   }
