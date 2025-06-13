@@ -141,307 +141,85 @@ export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
  * @param inputOptions - Parsing options
  * @returns array of parsed features, directives, comments and/or sequences
  */
-export function parseStringSync(
+export function parseStringSync<O extends ParseOptions>(
   str: string,
-  inputOptions?:
-    | {
-        disableDerivesFromReferences?: boolean
-        bufferSize?: number
-      }
-    | undefined,
-): (GFF3Feature | GFF3Sequence)[]
-export function parseStringSync<F extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    bufferSize?: number
-  },
-): F extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Sequence[]
-export function parseStringSync<D extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseDirectives: D
-    bufferSize?: number
-  },
-): D extends true
-  ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-  : (GFF3Feature | GFF3Sequence)[]
-export function parseStringSync<C extends boolean>(
-  str: string,
-  inputOptions: {
-    parseComments: C
-    bufferSize?: number
-  },
-): C extends true
-  ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-  : (GFF3Feature | GFF3Sequence)[]
-export function parseStringSync<S extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseSequences: S
-    bufferSize?: number
-  },
-): S extends true ? (GFF3Feature | GFF3Sequence)[] : GFF3Feature[]
-export function parseStringSync<F extends boolean, D extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    parseDirectives: D
-    bufferSize?: number
-  },
-): F extends true
-  ? D extends true
-    ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Sequence)[]
-  : D extends true
-    ? (GFF3Directive | GFF3Sequence)[]
-    : GFF3Sequence[]
-export function parseStringSync<F extends boolean, C extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    parseComments: C
-    bufferSize?: number
-  },
-): F extends true
-  ? C extends true
-    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Sequence)[]
-  : C extends true
-    ? (GFF3Comment | GFF3Sequence)[]
-    : GFF3Sequence[]
-export function parseStringSync<F extends boolean, S extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    parseSequences: S
-    bufferSize?: number
-  },
-): F extends true
-  ? S extends true
-    ? (GFF3Feature | GFF3Sequence)[]
-    : GFF3Feature[]
-  : S extends true
-    ? GFF3Sequence[]
-    : []
-export function parseStringSync<D extends boolean, C extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseDirectives: D
-    parseComments: C
-    bufferSize?: number
-  },
-): D extends true
-  ? C extends true
-    ? (GFF3Feature | GFF3Directive | GFF3Comment | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-  : C extends true
-    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Sequence)[]
-export function parseStringSync<D extends boolean, S extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseDirectives: D
-    parseSequences: S
-    bufferSize?: number
-  },
-): D extends true
-  ? S extends true
-    ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Directive)[]
-  : S extends true
-    ? (GFF3Feature | GFF3Sequence)[]
-    : GFF3Feature[]
-export function parseStringSync<C extends boolean, S extends boolean>(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseComments: C
-    parseSequences: S
-    bufferSize?: number
-  },
-): C extends true
-  ? S extends true
-    ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-    : (GFF3Feature | GFF3Comment)[]
-  : S extends true
-    ? (GFF3Feature | GFF3Sequence)[]
-    : GFF3Feature[]
-export function parseStringSync<
-  F extends boolean,
-  D extends boolean,
-  C extends boolean,
->(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    parseDirectives: D
-    parseComments: C
-    bufferSize?: number
-  },
-): F extends true
-  ? D extends true
-    ? C extends true
-      ? GFF3Item[]
-      : (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-    : C extends true
-      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-      : (GFF3Feature | GFF3Sequence)[]
-  : D extends true
-    ? C extends true
-      ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
-      : (GFF3Directive | GFF3Sequence)[]
-    : C extends true
-      ? (GFF3Comment | GFF3Sequence)[]
-      : GFF3Sequence[]
-export function parseStringSync<
-  F extends boolean,
-  D extends boolean,
-  S extends boolean,
->(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    parseDirectives: D
-    parseSequences: S
-    bufferSize?: number
-  },
-): F extends true
-  ? D extends true
-    ? S extends true
-      ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-      : (GFF3Feature | GFF3Directive)[]
-    : S extends true
-      ? (GFF3Feature | GFF3Sequence)[]
-      : GFF3Feature[]
-  : D extends true
-    ? S extends true
-      ? (GFF3Directive | GFF3Sequence)[]
-      : GFF3Directive[]
-    : S extends true
-      ? GFF3Sequence[]
-      : []
-export function parseStringSync<
-  F extends boolean,
-  C extends boolean,
-  S extends boolean,
->(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    parseComments: C
-    parseSequences: S
-    bufferSize?: number
-  },
-): F extends true
-  ? C extends true
-    ? S extends true
-      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-      : (GFF3Feature | GFF3Comment)[]
-    : S extends true
-      ? (GFF3Feature | GFF3Sequence)[]
-      : GFF3Feature[]
-  : C extends true
-    ? S extends true
-      ? (GFF3Comment | GFF3Sequence)[]
-      : GFF3Comment[]
-    : S extends true
-      ? GFF3Sequence[]
-      : []
-export function parseStringSync<
-  D extends boolean,
-  C extends boolean,
-  S extends boolean,
->(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: D
-    parseComments: C
-    parseSequences: S
-    bufferSize?: number
-  },
-): D extends true
-  ? C extends true
-    ? S extends true
-      ? GFF3Item[]
-      : (GFF3Feature | GFF3Directive | GFF3Comment)[]
-    : S extends true
-      ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-      : (GFF3Feature | GFF3Directive)[]
-  : C extends true
-    ? S extends true
-      ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-      : (GFF3Feature | GFF3Comment)[]
-    : S extends true
-      ? (GFF3Feature | GFF3Sequence)[]
-      : GFF3Feature[]
-export function parseStringSync<
-  F extends boolean,
-  D extends boolean,
-  C extends boolean,
-  S extends boolean,
->(
-  str: string,
-  inputOptions: {
-    disableDerivesFromReferences?: boolean
-    parseFeatures: F
-    parseDirectives: D
-    parseComments: C
-    parseSequences: S
-    bufferSize?: number
-  },
-): F extends true
-  ? D extends true
-    ? C extends true
-      ? S extends true
+  inputOptions?: O,
+): O extends { parseFeatures: true }
+  ? O extends { parseSequences: true }
+    ? O extends { parseDirectives: true }
+      ? O extends { parseComments: true }
         ? GFF3Item[]
-        : (GFF3Feature | GFF3Directive | GFF3Comment)[]
-      : S extends true
-        ? (GFF3Feature | GFF3Directive | GFF3Sequence)[]
-        : (GFF3Feature | GFF3Directive)[]
-    : C extends true
-      ? S extends true
-        ? (GFF3Feature | GFF3Comment | GFF3Sequence)[]
-        : (GFF3Feature | GFF3Comment)[]
-      : S extends true
-        ? (GFF3Feature | GFF3Sequence)[]
-        : GFF3Feature[]
-  : D extends true
-    ? C extends true
-      ? S extends true
-        ? (GFF3Directive | GFF3Comment | GFF3Sequence)[]
-        : (GFF3Directive | GFF3Comment)[]
-      : S extends true
-        ? (GFF3Directive | GFF3Sequence)[]
-        : GFF3Directive[]
-    : C extends true
-      ? S extends true
-        ? (GFF3Comment | GFF3Sequence)[]
-        : GFF3Comment[]
-      : S extends true
-        ? GFF3Sequence[]
-        : []
-export function parseStringSync(
-  str: string,
-  inputOptions: ParseOptions = {},
-): GFF3Item[] {
+        : (GFF3Feature | GFF3Sequence | GFF3Directive)[]
+      : O extends { parseComments: true }
+        ? (GFF3Feature | GFF3Sequence | GFF3Comment)[]
+        : (GFF3Feature | GFF3Sequence)[]
+    : O extends { parseSequences: false }
+      ? O extends { parseDirectives: true }
+        ? O extends { parseComments: true }
+          ? (GFF3Feature | GFF3Directive | GFF3Comment)[]
+          : (GFF3Feature | GFF3Directive)[]
+        : O extends { parseComments: true }
+          ? (GFF3Feature | GFF3Comment)[]
+          : GFF3Feature[]
+      : O extends { parseDirectives: true }
+        ? O extends { parseComments: true }
+          ? GFF3Item[]
+          : (GFF3Feature | GFF3Sequence | GFF3Directive)[]
+        : O extends { parseComments: true }
+          ? (GFF3Feature | GFF3Sequence | GFF3Comment)[]
+          : (GFF3Feature | GFF3Sequence)[]
+  : O extends { parseFeatures: false }
+    ? O extends { parseSequences: true }
+      ? O extends { parseDirectives: true }
+        ? O extends { parseComments: true }
+          ? (GFF3Sequence | GFF3Directive | GFF3Comment)[]
+          : (GFF3Sequence | GFF3Directive)[]
+        : O extends { parseComments: true }
+          ? (GFF3Sequence | GFF3Comment)[]
+          : GFF3Sequence[]
+      : O extends { parseSequences: false }
+        ? O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? (GFF3Directive | GFF3Comment)[]
+            : GFF3Directive[]
+          : O extends { parseComments: true }
+            ? GFF3Comment[]
+            : never[]
+        : O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? (GFF3Sequence | GFF3Directive | GFF3Comment)[]
+            : (GFF3Sequence | GFF3Directive)[]
+          : O extends { parseComments: true }
+            ? (GFF3Sequence | GFF3Comment)[]
+            : GFF3Sequence[]
+    : O extends { parseSequences: true }
+      ? O extends { parseDirectives: true }
+        ? O extends { parseComments: true }
+          ? GFF3Item[]
+          : (GFF3Feature | GFF3Sequence | GFF3Directive)[]
+        : O extends { parseComments: true }
+          ? (GFF3Feature | GFF3Sequence | GFF3Comment)[]
+          : (GFF3Feature | GFF3Sequence)[]
+      : O extends { parseSequences: false }
+        ? O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? (GFF3Feature | GFF3Directive | GFF3Comment)[]
+            : (GFF3Feature | GFF3Directive)[]
+          : O extends { parseComments: true }
+            ? (GFF3Feature | GFF3Comment)[]
+            : GFF3Feature[]
+        : O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? GFF3Item[]
+            : (GFF3Feature | GFF3Sequence | GFF3Directive)[]
+          : O extends { parseComments: true }
+            ? (GFF3Feature | GFF3Sequence | GFF3Comment)[]
+            : (GFF3Feature | GFF3Sequence)[] {
   if (!str) {
-    return []
+    return [] as any
   }
 
-  const options = _processParseOptions(inputOptions)
+  const options = _processParseOptions(inputOptions ?? {})
 
   const items: GFF3Item[] = []
   const push = items.push.bind(items)
@@ -474,7 +252,7 @@ export function parseStringSync(
     .forEach((line) => parser.addLine.bind(parser)(line, callbacks))
   parser.finish(callbacks)
 
-  return items
+  return items as any
 }
 
 /**
