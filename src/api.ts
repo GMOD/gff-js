@@ -46,7 +46,81 @@ function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
  * Parse a stream of text data into a stream of feature, directive, comment,
  * an sequence objects.
  */
-export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
+export class GFFTransformer<
+  O extends ParseOptions,
+  T = O extends { parseFeatures: true }
+    ? O extends { parseSequences: true }
+      ? O extends { parseDirectives: true }
+        ? O extends { parseComments: true }
+          ? GFF3Item
+          : GFF3Feature | GFF3Sequence | GFF3Directive
+        : O extends { parseComments: true }
+          ? GFF3Feature | GFF3Sequence | GFF3Comment
+          : GFF3Feature | GFF3Sequence
+      : O extends { parseSequences: false }
+        ? O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? GFF3Feature | GFF3Directive | GFF3Comment
+            : GFF3Feature | GFF3Directive
+          : O extends { parseComments: true }
+            ? GFF3Feature | GFF3Comment
+            : GFF3Feature
+        : O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? GFF3Item
+            : GFF3Feature | GFF3Sequence | GFF3Directive
+          : O extends { parseComments: true }
+            ? GFF3Feature | GFF3Sequence | GFF3Comment
+            : GFF3Feature | GFF3Sequence
+    : O extends { parseFeatures: false }
+      ? O extends { parseSequences: true }
+        ? O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? GFF3Sequence | GFF3Directive | GFF3Comment
+            : GFF3Sequence | GFF3Directive
+          : O extends { parseComments: true }
+            ? GFF3Sequence | GFF3Comment
+            : GFF3Sequence
+        : O extends { parseSequences: false }
+          ? O extends { parseDirectives: true }
+            ? O extends { parseComments: true }
+              ? GFF3Directive | GFF3Comment
+              : GFF3Directive
+            : O extends { parseComments: true }
+              ? GFF3Comment
+              : never
+          : O extends { parseDirectives: true }
+            ? O extends { parseComments: true }
+              ? GFF3Sequence | GFF3Directive | GFF3Comment
+              : GFF3Sequence | GFF3Directive
+            : O extends { parseComments: true }
+              ? GFF3Sequence | GFF3Comment
+              : GFF3Sequence
+      : O extends { parseSequences: true }
+        ? O extends { parseDirectives: true }
+          ? O extends { parseComments: true }
+            ? GFF3Item
+            : GFF3Feature | GFF3Sequence | GFF3Directive
+          : O extends { parseComments: true }
+            ? GFF3Feature | GFF3Sequence | GFF3Comment
+            : GFF3Feature | GFF3Sequence
+        : O extends { parseSequences: false }
+          ? O extends { parseDirectives: true }
+            ? O extends { parseComments: true }
+              ? GFF3Feature | GFF3Directive | GFF3Comment
+              : GFF3Feature | GFF3Directive
+            : O extends { parseComments: true }
+              ? GFF3Feature | GFF3Comment
+              : GFF3Feature
+          : O extends { parseDirectives: true }
+            ? O extends { parseComments: true }
+              ? GFF3Item
+              : GFF3Feature | GFF3Sequence | GFF3Directive
+            : O extends { parseComments: true }
+              ? GFF3Feature | GFF3Sequence | GFF3Comment
+              : GFF3Feature | GFF3Sequence,
+> implements Transformer<Uint8Array, T>
+{
   private decoder: TextDecoder
   private parser: GFF3Parser
   private lastString = ''
@@ -59,9 +133,9 @@ export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
    * Options for how the text stream is parsed
    * @param options - Parser options
    */
-  constructor(options: ParseOptions = {}) {
+  constructor(options?: O) {
     this.decoder = new TextDecoder()
-    const processedOptions = _processParseOptions(options)
+    const processedOptions = _processParseOptions(options ?? {})
     const { bufferSize, disableDerivesFromReferences } = processedOptions
     this.parser = new GFF3Parser({ bufferSize, disableDerivesFromReferences })
     this.parseFeatures = processedOptions.parseFeatures
@@ -70,43 +144,43 @@ export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
     this.parseSequences = processedOptions.parseSequences
   }
 
-  private makeCallbacks(
-    controller: TransformStreamDefaultController<GFF3Item>,
-  ) {
+  private makeCallbacks(controller: TransformStreamDefaultController<T>) {
     const callbacks: ParseCallbacks = {
       errorCallback: this.emitErrorMessage.bind(this, controller),
     }
     if (this.parseFeatures) {
-      callbacks.featureCallback = this.enqueueItem.bind(this, controller)
+      callbacks.featureCallback = (item: GFF3Feature) => {
+        controller.enqueue(item as T)
+      }
     }
     if (this.parseDirectives) {
-      callbacks.directiveCallback = this.enqueueItem.bind(this, controller)
+      callbacks.directiveCallback = (item: GFF3Directive) => {
+        controller.enqueue(item as T)
+      }
     }
     if (this.parseComments) {
-      callbacks.commentCallback = this.enqueueItem.bind(this, controller)
+      callbacks.commentCallback = (item: GFF3Comment) => {
+        controller.enqueue(item as T)
+      }
     }
     if (this.parseSequences) {
-      callbacks.sequenceCallback = this.enqueueItem.bind(this, controller)
+      callbacks.sequenceCallback = (item: GFF3Sequence) => {
+        controller.enqueue(item as T)
+      }
     }
     return callbacks
   }
 
   private emitErrorMessage(
-    controller: TransformStreamDefaultController<GFF3Item>,
+    controller: TransformStreamDefaultController<T>,
     errorMessage: string,
   ) {
     controller.error(errorMessage)
   }
-  private enqueueItem(
-    controller: TransformStreamDefaultController<GFF3Item>,
-    item: GFF3Item,
-  ) {
-    controller.enqueue(item)
-  }
 
   transform(
     chunk: Uint8Array,
-    controller: TransformStreamDefaultController<GFF3Item>,
+    controller: TransformStreamDefaultController<T>,
   ) {
     // Decode the current chunk to string and prepend the last string
     const string = `${this.lastString}${this.decoder.decode(chunk, {
@@ -122,7 +196,7 @@ export class GFFTransformer implements Transformer<Uint8Array, GFF3Item> {
     }
   }
 
-  flush(controller: TransformStreamDefaultController<GFF3Item>) {
+  flush(controller: TransformStreamDefaultController<T>) {
     const callbacks = this.makeCallbacks(controller)
     this.lastString = `${this.lastString}${this.decoder.decode()}`
     if (this.lastString) {

@@ -40,18 +40,15 @@ describe('GFF3 formatting', () => {
           'utf8',
         )
 
+        const transformer = new GFFTransformer({
+          parseFeatures: true,
+          parseComments: true,
+          parseDirectives: true,
+        })
         const stream = new ReadableStream(
           new FileSource(require.resolve(`../test/data/${file}.gff3`)),
         )
-          .pipeThrough(
-            new TransformStream(
-              new GFFTransformer({
-                parseFeatures: true,
-                parseComments: true,
-                parseDirectives: true,
-              }),
-            ),
-          )
+          .pipeThrough(new TransformStream(transformer))
           .pipeThrough(new TransformStream(new GFFFormattingTransformer()))
         const chunks: string[] = []
         const reader = stream.getReader()
@@ -75,22 +72,18 @@ describe('GFF3 formatting', () => {
     it(`can roundtrip ${file}.gff3 with formatStream and insertVersionDirective`, async () => {
       jest.setTimeout(1000)
       await withFile(async (tmpFile) => {
+        const transformer = new GFFTransformer({
+          parseComments: true,
+          parseDirectives: true,
+        })
+        const formattingTransformer = new GFFFormattingTransformer({
+          insertVersionDirective: true,
+        })
         await new ReadableStream(
           new FileSource(require.resolve(`../test/data/${file}.gff3`)),
         )
-          .pipeThrough(
-            new TransformStream(
-              new GFFTransformer({
-                parseComments: true,
-                parseDirectives: true,
-              }),
-            ),
-          )
-          .pipeThrough(
-            new TransformStream(
-              new GFFFormattingTransformer({ insertVersionDirective: true }),
-            ),
-          )
+          .pipeThrough(new TransformStream(transformer))
+          .pipeThrough(new TransformStream(formattingTransformer))
           .pipeTo(new WritableStream(new SyncFileSink(tmpFile.fd)))
 
         const resultGFF3 = await readFile(tmpFile.path, 'utf8')

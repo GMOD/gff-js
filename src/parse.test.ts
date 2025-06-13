@@ -31,16 +31,15 @@ async function readAll(
   }
 
   const stream = new ReadableStream(new FileSource(require.resolve(filename)))
-  const transformStream = new TransformStream(
-    new GFFTransformer({
-      parseFeatures: true,
-      parseDirectives: true,
-      parseComments: true,
-      parseSequences: true,
-      bufferSize: 10,
-      ...args,
-    }),
-  )
+  const transformer = new GFFTransformer({
+    parseFeatures: true,
+    parseDirectives: true,
+    parseComments: true,
+    parseSequences: true,
+    bufferSize: 10,
+    ...args,
+  })
+  const transformStream = new TransformStream(transformer)
   const gffStream = stream.pipeThrough(transformStream)
   for await (const value of gffStream) {
     stuff.all.push(value)
