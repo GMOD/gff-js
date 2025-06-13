@@ -1,5 +1,7 @@
+import { createReadStream } from 'fs'
 import { readFile } from 'fs/promises'
-import { ReadableStream, WritableStream, TransformStream } from 'stream/web'
+import { Readable } from 'stream'
+import { WritableStream, TransformStream } from 'stream/web'
 import { withFile } from 'tmp-promise'
 
 import {
@@ -8,7 +10,7 @@ import {
   formatSync,
   parseStringSync,
 } from './api'
-import { FileSource, SyncFileSink } from '../test/util'
+import { SyncFileSink } from '../test/util'
 
 describe('GFF3 formatting', () => {
   ;['spec_eden', 'au9_scaffold_subset', 'hybrid1', 'hybrid2'].forEach(
@@ -45,8 +47,8 @@ describe('GFF3 formatting', () => {
           parseComments: true,
           parseDirectives: true,
         })
-        const stream = new ReadableStream(
-          new FileSource(require.resolve(`../test/data/${file}.gff3`)),
+        const stream = Readable.toWeb(
+          createReadStream(require.resolve(`../test/data/${file}.gff3`)),
         )
           .pipeThrough(new TransformStream(transformer))
           .pipeThrough(new TransformStream(new GFFFormattingTransformer()))
@@ -79,8 +81,8 @@ describe('GFF3 formatting', () => {
         const formattingTransformer = new GFFFormattingTransformer({
           insertVersionDirective: true,
         })
-        await new ReadableStream(
-          new FileSource(require.resolve(`../test/data/${file}.gff3`)),
+        await Readable.toWeb(
+          createReadStream(require.resolve(`../test/data/${file}.gff3`)),
         )
           .pipeThrough(new TransformStream(transformer))
           .pipeThrough(new TransformStream(formattingTransformer))

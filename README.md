@@ -21,7 +21,7 @@ specification](https://github.com/The-Sequence-Ontology/Specifications/blob/mast
 
 ## Compatability
 
-Works in the browser and with Node.js v16 and up.
+Works in the browser and with Node.js v18 and up.
 
 ## Install
 
@@ -38,10 +38,7 @@ import {
   readFileSync,
   writeFileSync,
 } from 'fs'
-// Readable.toWeb and Writable.toWeb are only available in Node.js v18 and up
-// in Node.js 16, you'll have to provide your own stream source and sink
 import { Readable, Writable } from 'stream'
-// TransformStream is available without importing in Node.js v18 and up
 import { TransformStream } from 'stream/web'
 import {
   formatSync,

@@ -1,5 +1,7 @@
+import { createReadStream } from 'fs'
 import { readFile } from 'fs/promises'
-import { ReadableStream, TransformStream } from 'stream/web'
+import { Readable } from 'stream'
+import { TransformStream } from 'stream/web'
 import { GFFTransformer, parseStringSync } from './api'
 import { formatFeature } from './util'
 import type {
@@ -8,7 +10,6 @@ import type {
   GFF3Directive,
   GFF3Sequence,
 } from './util'
-import { FileSource } from '../test/util'
 
 interface ReadAllResults {
   features: GFF3Feature[]
@@ -30,7 +31,7 @@ async function readAll(
     all: [],
   }
 
-  const stream = new ReadableStream(new FileSource(require.resolve(filename)))
+  const stream = Readable.toWeb(createReadStream(require.resolve(filename)))
   const transformer = new GFFTransformer({
     parseFeatures: true,
     parseDirectives: true,

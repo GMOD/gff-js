@@ -824,10 +824,12 @@
   dependencies:
     undici-types "~5.26.4"
 
-"@types/node@^16.11.7":
-  version "16.18.22"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.18.22.tgz#a6505a5da1387aae03fddfb93591118f27b4c0ea"
-  integrity sha512-LJSIirgASa1LicFGTUFwDY7BfKDtLIbijqDLkH47LxEo/jtdrtiZ4/kLPD99bEQhTcPcuh6KhDllHqRxygJD2w==
+"@types/node@^18.11.9":
+  version "18.19.111"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.19.111.tgz#e95b89efc24cc625834b43bcd70bd5591a5dfba5"
+  integrity sha512-90sGdgA+QLJr1F9X79tQuEut0gEYIfkX9pydI4XGRgvFo9g2JWswefI+WUSUHPYVBHYSEfTEqBxA5hQvAZB3Mw==
+  dependencies:
+    undici-types "~5.26.4"
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.4"

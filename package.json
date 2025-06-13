@@ -15,7 +15,7 @@
     "url": "https://github.com/rbuels"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "files": [
     "dist",
@@ -47,7 +47,7 @@
   ],
   "devDependencies": {
     "@types/jest": "^29.2.4",
-    "@types/node": "^16.11.7",
+    "@types/node": "^18.11.9",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
     "documentation": "^14.0.1",
