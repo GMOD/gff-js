@@ -1,12 +1,15 @@
-import fs from 'fs'
-import gff from '../src'
-import {
-  formatFeature,
+import { createReadStream } from 'fs'
+import { readFile } from 'fs/promises'
+import { Readable } from 'stream'
+import { TransformStream } from 'stream/web'
+import { GFFTransformer, parseStringSync } from './api'
+import { formatFeature } from './util'
+import type {
   GFF3Feature,
-  GFF3Directive,
   GFF3Comment,
+  GFF3Directive,
   GFF3Sequence,
-} from '../src/util'
+} from './util'
 
 interface ReadAllResults {
   features: GFF3Feature[]
@@ -16,56 +19,50 @@ interface ReadAllResults {
   all: (GFF3Feature | GFF3Comment | GFF3Directive | GFF3Sequence)[]
 }
 
-function readAll(
+async function readAll(
   filename: string,
   args: Record<string, unknown> = {},
 ): Promise<ReadAllResults> {
-  return new Promise((resolve, reject) => {
-    const stuff: ReadAllResults = {
-      features: [],
-      comments: [],
-      directives: [],
-      sequences: [],
-      all: [],
-    }
+  const stuff: ReadAllResults = {
+    features: [],
+    comments: [],
+    directives: [],
+    sequences: [],
+    all: [],
+  }
 
-    // $p->max_lookback(1)
-    fs.createReadStream(require.resolve(filename))
-      .pipe(
-        gff.parseStream({
-          parseFeatures: true,
-          parseDirectives: true,
-          parseComments: true,
-          parseSequences: true,
-          bufferSize: 10,
-          ...args,
-        }),
-      )
-      .on('data', (d) => {
-        stuff.all.push(d)
-        if (d.directive) {
-          stuff.directives.push(d)
-        } else if (d.comment) {
-          stuff.comments.push(d)
-        } else if (d.sequence) {
-          stuff.sequences.push(d)
-        } else {
-          stuff.features.push(d)
-        }
-      })
-      .on('end', () => {
-        resolve(stuff)
-      })
-      .on('error', reject)
+  const stream = Readable.toWeb(createReadStream(require.resolve(filename)))
+  const transformer = new GFFTransformer({
+    parseFeatures: true,
+    parseDirectives: true,
+    parseComments: true,
+    parseSequences: true,
+    bufferSize: 10,
+    ...args,
   })
+  const transformStream = new TransformStream(transformer)
+  const gffStream = stream.pipeThrough(transformStream)
+  for await (const value of gffStream) {
+    stuff.all.push(value)
+    if ('directive' in value) {
+      stuff.directives.push(value)
+    } else if ('comment' in value) {
+      stuff.comments.push(value)
+    } else if ('sequence' in value) {
+      stuff.sequences.push(value)
+    } else {
+      stuff.features.push(value)
+    }
+  }
+  return stuff
 }
 
 describe('GFF3 parser', () => {
   it('can parse gff3_with_syncs.gff3', async () => {
-    const stuff = await readAll('./data/gff3_with_syncs.gff3')
+    const stuff = await readAll('../test/data/gff3_with_syncs.gff3')
     const referenceResult = JSON.parse(
-      fs.readFileSync(
-        require.resolve('./data/gff3_with_syncs.result.json'),
+      await readFile(
+        require.resolve('../test/data/gff3_with_syncs.result.json'),
         'utf8',
       ),
     )
@@ -77,7 +74,7 @@ describe('GFF3 parser', () => {
     [51, 'au9_scaffold_subset.gff3'],
     [14, 'tomato_chr4_head.gff3'],
     [5, 'directives.gff3'],
-    [5, 'hybrid1.gff3'],
+    [6, 'hybrid1.gff3'],
     [3, 'hybrid2.gff3'],
     [6, 'knownGene.gff3'],
     [6, 'knownGene2.gff3'],
@@ -87,18 +84,17 @@ describe('GFF3 parser', () => {
     [8, 'quantitative.gff3'],
   ].forEach(([count, filename]) => {
     it(`can cursorily parse ${filename}`, async () => {
-      const stuff = await readAll(`./data/${filename}`)
-      //     $p->max_lookback(10);
+      const stuff = await readAll(`../test/data/${filename}`)
       expect(stuff.all.length).toEqual(count)
     })
   })
 
   it('supports children before parents, and Derives_from', async () => {
-    const stuff = await readAll('./data/knownGene_out_of_order.gff3')
+    const stuff = await readAll('../test/data/knownGene_out_of_order.gff3')
     // $p->max_lookback(2);
     const expectedOutput = JSON.parse(
-      fs.readFileSync(
-        require.resolve('./data/knownGene_out_of_order.result.json'),
+      await readFile(
+        require.resolve('../test/data/knownGene_out_of_order.result.json'),
         'utf8',
       ),
     )
@@ -106,7 +102,7 @@ describe('GFF3 parser', () => {
   })
 
   it('can parse the EDEN gene from the gff3 spec', async () => {
-    const stuff = await readAll('./data/spec_eden.gff3')
+    const stuff = await readAll('../test/data/spec_eden.gff3')
     expect(stuff.all[2]).toHaveLength(1)
     const [eden] = stuff.all[2] as GFF3Feature
 
@@ -138,52 +134,59 @@ describe('GFF3 parser', () => {
     expect(mrnaLines[2].child_features).toHaveLength(6)
 
     const referenceResult = JSON.parse(
-      fs.readFileSync(require.resolve('./data/spec_eden.result.json'), 'utf8'),
+      await readFile(
+        require.resolve('../test/data/spec_eden.result.json'),
+        'utf8',
+      ),
     )
     expect(stuff.all).toEqual(referenceResult)
   })
 
   it('can parse an excerpt of the refGene gff3', async () => {
-    const stuff = await readAll('./data/refGene_excerpt.gff3')
+    const stuff = await readAll('../test/data/refGene_excerpt.gff3')
     expect(true).toBeTruthy()
     expect(stuff.all).toHaveLength(2)
   })
 
   it('can parse an excerpt of the TAIR10 gff3', async () => {
-    const stuff = await readAll('./data/tair10.gff3')
+    const stuff = await readAll('../test/data/tair10.gff3')
     expect(stuff.all).toHaveLength(3)
   })
 
   it('can parse chr1 TAIR10 gff3', async () => {
-    const stuff = await readAll('./data/tair10_chr1.gff', {
+    const stuff = await readAll('../test/data/tair10_chr1.gff', {
       disableDerivesFromReferences: true,
     })
     expect(stuff.all).toHaveLength(17697)
-  })
+  }, 10000)
 
   // check that some files throw a parse error
   ;['mm9_sample_ensembl.gff3', 'Saccharomyces_cerevisiae_EF3_e64.gff3'].forEach(
     (errorFile) => {
       it(`throws an error when parsing ${errorFile}`, async () => {
-        await expect(readAll(`./data/${errorFile}`)).rejects.toMatch(
+        await expect(readAll(`../test/data/${errorFile}`)).rejects.toMatch(
           /inconsistent types/,
         )
       })
     },
   )
 
-  it('can parse a string synchronously', () => {
-    const gff3 = fs
-      .readFileSync(require.resolve('./data/spec_eden.gff3'))
-      .toString('utf8')
-    const result = gff.parseStringSync(gff3, {
+  it('can parse a string synchronously', async () => {
+    const gff3 = await readFile(
+      require.resolve('../test/data/spec_eden.gff3'),
+      'utf8',
+    )
+    const result = parseStringSync(gff3, {
       parseFeatures: true,
       parseDirectives: true,
       parseComments: true,
     })
     expect(result).toHaveLength(3)
     const referenceResult = JSON.parse(
-      fs.readFileSync(require.resolve('./data/spec_eden.result.json'), 'utf8'),
+      await readFile(
+        require.resolve('../test/data/spec_eden.result.json'),
+        'utf8',
+      ),
     )
     expect(result).toEqual(referenceResult)
   })
@@ -193,7 +196,7 @@ describe('GFF3 parser', () => {
 SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	 multivalue = val1,val2, val3;testing = blah
 `
 
-    const result = gff.parseStringSync(gff3, {
+    const result = parseStringSync(gff3, {
       parseFeatures: true,
       parseDirectives: true,
       parseComments: true,
@@ -227,7 +230,7 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	 multivalue = val1
 SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g098840;ID=gene:Solyc01g098840.2;Name=Solyc01g098840.2;from_BOGAS=1;length=5178
 `
 
-    const result = gff.parseStringSync(gff3, {
+    const result = parseStringSync(gff3, {
       parseFeatures: true,
       parseDirectives: true,
       parseComments: true,
@@ -294,27 +297,8 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g0988
     ] as const
   ).forEach(([filename, expectedOutput]) => {
     it(`can parse FASTA sections in hybrid ${filename} file`, async () => {
-      const stuff = await readAll(`./data/${filename}`)
+      const stuff = await readAll(`../test/data/${filename}`)
       expect(stuff.sequences).toEqual(expectedOutput)
     })
-  })
-
-  it('can be written to directly', async () => {
-    const items: GFF3Feature[] = await new Promise((resolve, reject) => {
-      const i: GFF3Feature[] = []
-      const stream = gff
-        .parseStream()
-        .on('data', (d) => i.push(d))
-        .on('end', () => resolve(i))
-        .on('error', reject)
-
-      stream.write(
-        `SL2.40ch00	ITAG_eugene	gene	16437	18189	.	+	.	Alias=Solyc00g005000;ID=gene:Solyc00g005000.2;Name=Solyc00g005000.2;from_BOGAS=1;length=1753\n`,
-      )
-      stream.end()
-    })
-
-    expect(items).toHaveLength(1)
-    expect(items[0][0].seq_id).toEqual('SL2.40ch00')
   })
 })

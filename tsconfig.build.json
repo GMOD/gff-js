@@ -1,5 +1,6 @@
 {
   "include": ["src"],
+  "exclude": ["**/*.test.ts"],
   "compilerOptions": {
     // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping#node-18
     "types": ["node", "jest"],

@@ -8,15 +8,12 @@
  * @returns An unescaped string value
  */
 export function unescape(stringVal: string): string {
-  return stringVal.replaceAll(/%([0-9A-Fa-f]{2})/g, (_match, seq) =>
-    String.fromCharCode(parseInt(seq, 16)),
-  )
+  return decodeURIComponent(stringVal)
 }
 
 function _escape(regex: RegExp, s: string | number) {
-  return String(s).replace(regex, (ch) => {
-    const hex = ch.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')
-    return `%${hex}`
+  return String(s).replaceAll(regex, (ch) => {
+    return encodeURIComponent(ch).toUpperCase()
   })
 }
 
@@ -27,7 +24,7 @@ function _escape(regex: RegExp, s: string | number) {
  * @returns An escaped string value
  */
 export function escape(rawVal: string | number): string {
-  return _escape(/[\n;\r\t=%&,\u0000-\u001f\u007f-\u00ff]/g, rawVal)
+  return _escape(/[\n;\r\t=%&,\u0000-\u001f\u007f]/g, rawVal)
 }
 
 /**
@@ -37,7 +34,7 @@ export function escape(rawVal: string | number): string {
  * @returns An escaped column value
  */
 export function escapeColumn(rawVal: string | number): string {
-  return _escape(/[\n\r\t%\u0000-\u001f\u007f-\u00ff]/g, rawVal)
+  return _escape(/[\n\r\t%\u0000-\u001f\u007f]/g, rawVal)
 }
 
 /**
@@ -54,7 +51,7 @@ export function parseAttributes(attrString: string): GFF3Attributes {
   const attrs: GFF3Attributes = {}
 
   attrString
-    .replace(/\r?\n$/, '')
+    .replace(/\r\n|[\r\n]$/, '')
     .split(';')
     .forEach((a) => {
       const nv = a.split('=', 2)
@@ -87,7 +84,10 @@ export function parseAttributes(attrString: string): GFF3Attributes {
  */
 export function parseFeature(line: string): GFF3FeatureLine {
   // split the line into columns and replace '.' with null in each column
-  const f = line.split('\t').map((a) => (a === '.' || a === '' ? null : a))
+  const f = line
+    .trim()
+    .split('\t')
+    .map((a) => (a === '.' || a === '' ? null : a))
 
   // unescape only the ref, source, and type columns
   const parsed: GFF3FeatureLine = {
@@ -127,7 +127,7 @@ export function parseDirective(
 
   const parsed: GFF3Directive = { directive: name }
   if (contents.length) {
-    contents = contents.replace(/\r?\n$/, '')
+    contents = contents.replace(/\r\n|[\r\n]$/, '')
     parsed.value = contents
   }
 
@@ -161,19 +161,7 @@ export function parseDirective(
 export function formatAttributes(attrs: GFF3Attributes): string {
   const attrOrder: string[] = []
   Object.entries(attrs).forEach(([tag, val]) => {
-    if (!val) {
-      return
-    }
-    let valstring
-    if (val.hasOwnProperty('toString')) {
-      valstring = escape(val.toString())
-      // } else if (Array.isArray(val.values)) {
-      //   valstring = val.values.map(escape).join(',')
-    } else if (Array.isArray(val)) {
-      valstring = val.map(escape).join(',')
-    } else {
-      valstring = escape(val)
-    }
+    const valstring = val.map(escape).join(',')
     attrOrder.push(`${escape(tag)}=${valstring}`)
   })
   return attrOrder.length ? attrOrder.join(';') : '.'
@@ -282,9 +270,34 @@ export function formatComment(comment: GFF3Comment): string {
  * @returns Formatted single FASTA sequence string
  */
 export function formatSequence(seq: GFF3Sequence): string {
-  return `>${seq.id}${seq.description ? ` ${seq.description}` : ''}\n${
-    seq.sequence
-  }\n`
+  const header = `>${seq.id}${seq.description ? ` ${seq.description}` : ''}\n`
+  // split sequence chunks into lines of length 80 for embedded FASTA
+  const lineLength = 80
+  const numChunks = Math.ceil(seq.sequence.length / lineLength)
+  const chunks = new Array(numChunks)
+  for (let i = 0; i < numChunks; i += 1) {
+    const start = i * lineLength
+    chunks[i] = seq.sequence.slice(start, start + lineLength)
+  }
+  return `${header}${chunks.join('\n')}\n`
+}
+
+function formatSingleItem(
+  item: GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence,
+) {
+  if ('attributes' in item) {
+    return formatFeature(item)
+  }
+  if ('directive' in item) {
+    return formatDirective(item)
+  }
+  if ('sequence' in item) {
+    return formatSequence(item)
+  }
+  if ('comment' in item) {
+    return formatComment(item)
+  }
+  return '# (invalid item found during format)\n'
 }
 
 /**
@@ -295,31 +308,24 @@ export function formatSequence(seq: GFF3Sequence): string {
  * @returns A formatted string or array of strings
  */
 export function formatItem(
+  item: GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence,
+): string
+export function formatItem(
+  items: (
+    | GFF3FeatureLineWithRefs
+    | GFF3Directive
+    | GFF3Comment
+    | GFF3Sequence
+  )[],
+): string[]
+export function formatItem(
   itemOrItems:
     | GFF3FeatureLineWithRefs
     | GFF3Directive
     | GFF3Comment
     | GFF3Sequence
     | (GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence)[],
-): string | string[] {
-  function formatSingleItem(
-    item: GFF3FeatureLineWithRefs | GFF3Directive | GFF3Comment | GFF3Sequence,
-  ) {
-    if ('attributes' in item) {
-      return formatFeature(item)
-    }
-    if ('directive' in item) {
-      return formatDirective(item)
-    }
-    if ('sequence' in item) {
-      return formatSequence(item)
-    }
-    if ('comment' in item) {
-      return formatComment(item)
-    }
-    return '# (invalid item found during format)\n'
-  }
-
+) {
   if (Array.isArray(itemOrItems)) {
     return itemOrItems.map(formatSingleItem)
   }
@@ -327,7 +333,7 @@ export function formatItem(
 }
 
 /** A record of GFF3 attribute identifiers and the values of those identifiers */
-export type GFF3Attributes = Record<string, string[] | undefined>
+export type GFF3Attributes = Record<string, string[]>
 
 /** A representation of a single line of a GFF3 file */
 export interface GFF3FeatureLine {
@@ -377,7 +383,7 @@ function _isFeatureLineWithRefs(
 export type GFF3Feature = GFF3FeatureLineWithRefs[]
 
 /** A GFF3 directive */
-export interface GFF3Directive {
+export interface BaseGFF3Directive {
   /** The name of the directive */
   directive: string
   /** The string value of the directive */
@@ -385,7 +391,7 @@ export interface GFF3Directive {
 }
 
 /** A GFF3 sequence-region directive */
-export interface GFF3SequenceRegionDirective extends GFF3Directive {
+export interface GFF3SequenceRegionDirective extends BaseGFF3Directive {
   /** The string value of the directive */
   value: string
   /** The sequence ID parsed from the directive */
@@ -397,7 +403,7 @@ export interface GFF3SequenceRegionDirective extends GFF3Directive {
 }
 
 /** A GFF3 genome-build directive */
-export interface GFF3GenomeBuildDirective extends GFF3Directive {
+export interface GFF3GenomeBuildDirective extends BaseGFF3Directive {
   /** The string value of the directive */
   value: string
   /** The genome build source parsed from the directive */
@@ -405,6 +411,11 @@ export interface GFF3GenomeBuildDirective extends GFF3Directive {
   /** The genome build name parsed from the directive */
   buildName: string
 }
+
+export type GFF3Directive =
+  | BaseGFF3Directive
+  | GFF3SequenceRegionDirective
+  | GFF3GenomeBuildDirective
 
 /** A GFF3 comment */
 export interface GFF3Comment {
