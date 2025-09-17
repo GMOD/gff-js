@@ -308,7 +308,7 @@ Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Glob
 
 #### bufferSize
 
-Maximum number of GFF3 lines to buffer, default 50000
+Maximum number of GFF3 lines to buffer, default Infinity
 
 Type: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
@@ -319,7 +319,7 @@ an sequence objects.
 
 #### Parameters
 
-- `options` **[ParseOptions](#parseoptions)** Parser options (optional, default `{}`)
+- `options` **O?** Parser options
 
 ### parseStringSync
 
@@ -329,9 +329,9 @@ parsed items.
 #### Parameters
 
 - `str` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** GFF3 string
-- `inputOptions` **({disableDerivesFromReferences: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?, bufferSize: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
+- `inputOptions` **O?** Parsing options
 
-Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<(GFF3Feature | GFF3Sequence)>** array of parsed features, directives, comments and/or sequences
+Returns **any** array of parsed features, directives, comments and/or sequences
 
 ### formatSync
 
@@ -431,7 +431,7 @@ const gff3Lines = util.formatItem({
   - [child_features](#child_features)
   - [derived_features](#derived_features)
 - [GFF3Feature](#gff3feature)
-- [GFF3Directive](#gff3directive)
+- [BaseGFF3Directive](#basegff3directive)
   - [directive](#directive)
   - [value](#value)
 - [GFF3SequenceRegionDirective](#gff3sequenceregiondirective)
@@ -508,7 +508,7 @@ Parse a GFF3 directive line.
 
 - `line` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** GFF3 directive line
 
-Returns **([GFF3Directive](#gff3directive) | [GFF3SequenceRegionDirective](#gff3sequenceregiondirective) | [GFF3GenomeBuildDirective](#gff3genomebuilddirective) | null)** The parsed directive
+Returns **(GFF3Directive | [GFF3SequenceRegionDirective](#gff3sequenceregiondirective) | [GFF3GenomeBuildDirective](#gff3genomebuilddirective) | null)** The parsed directive
 
 ### formatAttributes
 
@@ -537,7 +537,7 @@ Format a directive into a line of GFF3.
 
 #### Parameters
 
-- `directive` **[GFF3Directive](#gff3directive)** A directive object
+- `directive` **GFF3Directive** A directive object
 
 Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** A directive line string
 
@@ -569,7 +569,7 @@ into one or more lines of GFF3.
 
 #### Parameters
 
-- `item` **([GFF3FeatureLineWithRefs](#gff3featurelinewithrefs) | [GFF3Directive](#gff3directive) | [GFF3Comment](#gff3comment) | [GFF3Sequence](#gff3sequence))**&#x20;
+- `item` **([GFF3FeatureLineWithRefs](#gff3featurelinewithrefs) | GFF3Directive | [GFF3Comment](#gff3comment) | [GFF3Sequence](#gff3sequence))**&#x20;
 - `itemOrItems` A comment, sequence, or feature, or array of such items
 
 Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** A formatted string or array of strings
@@ -578,7 +578,7 @@ Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/G
 
 A record of GFF3 attribute identifiers and the values of those identifiers
 
-Type: Record<[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String), ([Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)> | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))>
+Type: Record<[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String), [Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)>>
 
 ### GFF3FeatureLine
 
@@ -663,7 +663,7 @@ A GFF3 feature, which may include multiple individual feature lines
 
 Type: [Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<[GFF3FeatureLineWithRefs](#gff3featurelinewithrefs)>
 
-### GFF3Directive
+### BaseGFF3Directive
 
 A GFF3 directive
 
@@ -681,7 +681,7 @@ Type: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Globa
 
 ### GFF3SequenceRegionDirective
 
-**Extends GFF3Directive**
+**Extends BaseGFF3Directive**
 
 A GFF3 sequence-region directive
 
@@ -711,7 +711,7 @@ Type: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Globa
 
 ### GFF3GenomeBuildDirective
 
-**Extends GFF3Directive**
+**Extends BaseGFF3Directive**
 
 A GFF3 genome-build directive
 
