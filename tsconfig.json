@@ -7,6 +7,7 @@
     "module": "node16",
     "target": "es2022",
     "declaration": true,
+    "isolatedModules": true,
     "moduleResolution": "nodenext",
     "sourceMap": true,
     "strict": true,
