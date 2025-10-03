@@ -104,16 +104,12 @@ import { GFFTransformer } from '@gmod/gff'
   if (!response.body) {
     throw new Error('No response body')
   }
-  const reader = response.body
-    .pipeThrough(new TransformStream(new GFFTransformer({ parseAll: true })))
-    .getReader()
-  let result
-  do {
-    result = await reader.read()
-    if (result.done) {
-      continue
-    }
-    const data = result.value
+  const streamOfGFF3 = response.body.pipeThrough(
+    new TransformStream(
+      new GFFTransformer({ parseComments: true, parseDirectives: true }),
+    ),
+  )
+  for await (const chunk of streamOfGFF3) {
     if ('directive' in data) {
       console.log('got a directive', data)
     } else if ('comment' in data) {
@@ -123,7 +119,7 @@ import { GFFTransformer } from '@gmod/gff'
     } else {
       console.log('got a feature', data)
     }
-  } while (!result.done)
+  }
 })()
 ```
 
