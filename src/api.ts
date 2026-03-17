@@ -23,6 +23,8 @@ export interface ParseOptions {
   parseSequences?: boolean
   /** Maximum number of GFF3 lines to buffer, default Infinity */
   bufferSize?: number
+  /** What to do when a feature can't be parsed, defaults to throwing an error */
+  errorCallback?(errorMessage: string): void
 }
 
 type ParseOptionsProcessed = Required<ParseOptions>
@@ -36,6 +38,9 @@ function _processParseOptions(options: ParseOptions): ParseOptionsProcessed {
     parseComments: false,
     bufferSize: Infinity,
     disableDerivesFromReferences: false,
+    errorCallback: (err: string) => {
+      throw new Error(err)
+    },
     ...options,
   }
 
@@ -128,6 +133,7 @@ export class GFFTransformer<
   private parseDirectives: boolean
   private parseComments: boolean
   private parseSequences: boolean
+  private errorCallback?(errorMessage: string): void
 
   /**
    * Options for how the text stream is parsed
@@ -142,6 +148,7 @@ export class GFFTransformer<
     this.parseDirectives = processedOptions.parseDirectives
     this.parseComments = processedOptions.parseComments
     this.parseSequences = processedOptions.parseSequences
+    this.errorCallback = options?.errorCallback
   }
 
   private makeCallbacks(controller: TransformStreamDefaultController<T>) {
@@ -175,7 +182,11 @@ export class GFFTransformer<
     controller: TransformStreamDefaultController<T>,
     errorMessage: string,
   ) {
-    controller.error(errorMessage)
+    if (this.errorCallback) {
+      this.errorCallback(errorMessage)
+    } else {
+      controller.error(errorMessage)
+    }
   }
 
   transform(
@@ -299,9 +310,7 @@ export function parseStringSync<O extends ParseOptions>(
   const push = items.push.bind(items)
 
   const callbacks: ParseCallbacks = {
-    errorCallback: (err: string) => {
-      throw new Error(err)
-    },
+    errorCallback: options.errorCallback,
   }
   if (options.parseFeatures) {
     callbacks.featureCallback = push

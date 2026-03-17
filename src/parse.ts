@@ -160,7 +160,7 @@ export class GFF3Parser {
     } else {
       // it's a parse error
       const errLine = line.replaceAll(/\r\n|[\r\n]$/g, '')
-      throw new Error(`GFF3 parse error. Cannot parse '${errLine}'.`)
+      this.parseError(`GFF3 parse error. Cannot parse '${errLine}'.`, callbacks)
     }
   }
 
@@ -235,10 +235,11 @@ export class GFF3Parser {
     // if we have any orphans hanging around still, this is a problem. die with
     // a parse error
     if (this.underConstructionOrphans.size) {
-      throw new Error(
+      this.parseError(
         `some features reference other features that do not exist in the file (or in the same '###' scope). ${Array.from(
           this.underConstructionOrphans.keys(),
         ).join(',')}`,
+        callbacks,
       )
     }
   }
