@@ -179,7 +179,7 @@ export default class Parser {
     }
   }
 
-  private _enforceBufferSizeLimit(additionalItemCount = 0) {
+  private _enforceBufferSizeLimit(_additionalItemCount = 0) {
     const _unbufferItem = (item?: GFF3.GFF3Feature) => {
       if (item && Array.isArray(item) && item[0].attributes?.ID?.[0]) {
         const ids = item[0].attributes.ID
