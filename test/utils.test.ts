@@ -1,5 +1,5 @@
 import gff from '../src'
-import { GFF3FeatureLine } from '../src/util'
+import type { GFF3FeatureLine } from '../src/util'
 
 const {
   parseAttributes,

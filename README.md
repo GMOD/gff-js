@@ -24,11 +24,8 @@ specification](https://github.com/The-Sequence-Ontology/Specifications/blob/mast
 ## Usage
 
 ```js
-const gff = require('@gmod/gff').default
-// or in ES6 (recommended)
 import gff from '@gmod/gff'
-
-const fs = require('fs')
+import fs from 'fs'
 
 // parse a file from a file name
 // parses only features and sequences by default,
@@ -204,7 +201,6 @@ ACTGACTAGCTAGCATCAGCGTCGTAGCTATTATATTACGGTAGCCA`)[
   - [parseComments](#parsecomments)
   - [parseSequences](#parsesequences)
   - [parseAll](#parseall)
-  - [bufferSize](#buffersize)
 - [parseStream](#parsestream)
   - [Parameters](#parameters)
 - [parseStringSync](#parsestringsync)
@@ -263,12 +259,6 @@ parsing options. Default false.
 
 Type: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-#### bufferSize
-
-Maximum number of GFF3 lines to buffer, default 1000
-
-Type: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)
-
 ### parseStream
 
 Parse a stream of text data into a stream of feature, directive, comment,
@@ -288,7 +278,7 @@ parsed items.
 #### Parameters
 
 - `str` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** GFF3 string
-- `inputOptions` **({disableDerivesFromReferences: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?, encoding: BufferEncoding?, bufferSize: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
+- `inputOptions` **({disableDerivesFromReferences: [boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?, encoding: BufferEncoding?} | [undefined](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/undefined))?** Parsing options
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)<(GFF3Feature | GFF3Sequence)>** array of parsed features, directives, comments and/or sequences
 
@@ -314,7 +304,7 @@ Inserts synchronization (###) marks automatically.
 
 - `options` **FormatOptions** parser options (optional, default `{}`)
 
-Returns **FormattingTransform**
+Returns **FormattingTransform**&#x20;
 
 ### formatFile
 
@@ -327,7 +317,7 @@ directive automatically (if one is not already present).
 #### Parameters
 
 - `stream` **Readable** the stream to write to the file
-- `writeStream` **Writable**
+- `writeStream` **Writable**&#x20;
 - `options` **FormatOptions** parser options (optional, default `{}`)
 - `filename` the file path to write to
 
@@ -338,9 +328,6 @@ Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/
 There is also a `util` module that contains super-low-level functions for dealing with lines and parts of lines.
 
 ```js
-// non-ES6
-const util = require('@gmod/gff').default.util
-// or, with ES6
 import gff from '@gmod/gff'
 const util = gff.util
 

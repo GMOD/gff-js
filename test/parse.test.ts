@@ -1,12 +1,13 @@
+import { describe, it, expect } from 'vitest'
 import fs from 'fs'
 import gff from '../src'
-import {
-  formatFeature,
+import type {
   GFF3Feature,
   GFF3Directive,
   GFF3Comment,
   GFF3Sequence,
 } from '../src/util'
+import { formatFeature } from '../src/util'
 
 interface ReadAllResults {
   features: GFF3Feature[]
@@ -37,7 +38,6 @@ function readAll(
           parseDirectives: true,
           parseComments: true,
           parseSequences: true,
-          bufferSize: 10,
           ...args,
         }),
       )
@@ -305,7 +305,9 @@ SL2.40%25ch01	IT%25AG eugene	g%25e;ne	80999140	81004317	.	+	.	Alias=Solyc01g0988
       const stream = gff
         .parseStream()
         .on('data', (d) => i.push(d))
-        .on('end', () => resolve(i))
+        .on('end', () => {
+          resolve(i)
+        })
         .on('error', reject)
 
       stream.write(
