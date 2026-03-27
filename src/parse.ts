@@ -1,4 +1,4 @@
-import * as GFF3 from './util'
+import * as GFF3 from './util.ts'
 
 const containerAttributes = {
   Parent: 'child_features' as const,

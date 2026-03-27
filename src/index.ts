@@ -1,12 +1,11 @@
 import {
+  formatFile,
+  formatStream,
+  formatSync,
   parseStream,
   parseStringSync,
-  formatSync,
-  formatStream,
-  formatFile,
-} from './api'
-
-import * as util from './util'
+} from './api.ts'
+import * as util from './util.ts'
 
 export default {
   parseStream,
@@ -19,10 +18,10 @@ export default {
 
 export {
   type GFF3Comment,
-  type GFF3Feature,
   type GFF3Directive,
-  type GFF3FeatureLineWithRefs,
+  type GFF3Feature,
   type GFF3FeatureLine,
+  type GFF3FeatureLineWithRefs,
   type GFF3Item,
   type GFF3Sequence,
-} from './api'
+} from './api.ts'

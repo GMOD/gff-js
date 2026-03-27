@@ -4,11 +4,15 @@
     "types": ["node", "jest"],
     "lib": ["dom", "esnext"],
     "declaration": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "rootDir": "./src",
     "sourceMap": true,
     "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
   }
 }

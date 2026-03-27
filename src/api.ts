@@ -1,16 +1,17 @@
-import type { TransformCallback, Readable, Writable } from 'stream'
 import { Transform } from 'stream'
 import { StringDecoder as Decoder } from 'string_decoder'
 
-import Parser from './parse'
+import Parser from './parse.ts'
+import { formatItem, formatSequence } from './util.ts'
+
 import type {
   GFF3Comment,
   GFF3Directive,
   GFF3Feature,
-  GFF3Sequence,
   GFF3Item,
-} from './util'
-import { formatItem, formatSequence } from './util'
+  GFF3Sequence,
+} from './util.ts'
+import type { Readable, TransformCallback, Writable } from 'stream'
 
 /** Parser options */
 export interface ParseOptions {
@@ -120,9 +121,7 @@ class GFFTransform extends Transform {
     if (this.decoder.end) {
       this._nextText(this.decoder.end())
     }
-    if (this.textBuffer != null) {
-      this._addLine(this.textBuffer)
-    }
+    this._addLine(this.textBuffer)
     this.parser.finish()
     _callback(callback)
   }
@@ -614,11 +613,11 @@ export function formatFile(
 }
 
 export {
-  type GFF3FeatureLine,
   type GFF3Comment,
-  type GFF3FeatureLineWithRefs,
   type GFF3Directive,
-  type GFF3Sequence,
   type GFF3Feature,
+  type GFF3FeatureLine,
+  type GFF3FeatureLineWithRefs,
   type GFF3Item,
-} from './util'
+  type GFF3Sequence,
+} from './util.ts'

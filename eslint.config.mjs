@@ -1,10 +1,11 @@
 import eslint from '@eslint/js'
+import importPlugin from 'eslint-plugin-import'
 import prettierRecommended from 'eslint-plugin-prettier/recommended'
 import eslintPluginUnicorn from 'eslint-plugin-unicorn'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist/*', 'esm/*', '*.js', '*.mjs'] },
+  { ignores: ['dist/*', 'esm/*', '*.js', '*.mjs', 'src/**/*.js', 'src/**/*.d.ts'] },
   {
     languageOptions: {
       parserOptions: {
@@ -19,6 +20,7 @@ export default tseslint.config(
   ...tseslint.configs.strictTypeChecked,
   eslintPluginUnicorn.configs.recommended,
   prettierRecommended,
+  importPlugin.flatConfigs.recommended,
   {
     rules: {
       '@typescript-eslint/no-unused-vars': [
@@ -31,8 +33,9 @@ export default tseslint.config(
 
       'no-underscore-dangle': 'off',
       curly: 'error',
+      eqeqeq: 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/ban-ts-comment': ['error', { 'ts-expect-error': 'allow-with-description', 'ts-ignore': true }],
       semi: ['error', 'never'],
       'unicorn/no-new-array': 'off',
@@ -43,7 +46,6 @@ export default tseslint.config(
       '@typescript-eslint/unbound-method': 'off',
       'unicorn/prefer-node-protocol': 'off',
       'unicorn/no-unreadable-array-destructuring': 'off',
-      'unicorn/no-abusive-eslint-disable': 'off',
       'unicorn/no-array-callback-reference': 'off',
       'unicorn/number-literal-case': 'off',
       'unicorn/prefer-add-event-listener': 'off',
@@ -53,10 +55,8 @@ export default tseslint.config(
       'unicorn/no-lonely-if': 'off',
       'unicorn/consistent-destructuring': 'off',
       'unicorn/prefer-module': 'off',
-      'unicorn/prefer-optional-catch-binding': 'off',
       'unicorn/no-useless-undefined': 'off',
       'unicorn/no-null': 'off',
-      'unicorn/no-nested-ternary': 'off',
       'unicorn/filename-case': 'off',
       'unicorn/catch-error-name': 'off',
       'unicorn/prevent-abbreviations': 'off',
@@ -84,13 +84,28 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
-      '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
       '@typescript-eslint/no-unnecessary-condition': 'off',
       '@typescript-eslint/only-throw-error': 'off',
       '@typescript-eslint/no-dynamic-delete': 'off',
       'no-control-regex': 'off',
       'no-prototype-builtins': 'off',
+      'import/extensions': ['error', 'ignorePackages'],
+      'import/no-unresolved': 'off',
+      'import/order': [
+        'error',
+        {
+          named: true,
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc' },
+          groups: [
+            'builtin',
+            ['external', 'internal'],
+            ['parent', 'sibling', 'index', 'object'],
+            'type',
+          ],
+        },
+      ],
     },
   },
 )

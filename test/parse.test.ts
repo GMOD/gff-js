@@ -1,13 +1,16 @@
-import { describe, it, expect } from 'vitest'
 import fs from 'fs'
-import gff from '../src'
+
+import { describe, expect, it } from 'vitest'
+
+import gff from '../src/index.ts'
+import { formatFeature } from '../src/util.ts'
+
 import type {
-  GFF3Feature,
-  GFF3Directive,
   GFF3Comment,
+  GFF3Directive,
+  GFF3Feature,
   GFF3Sequence,
-} from '../src/util'
-import { formatFeature } from '../src/util'
+} from '../src/util.ts'
 
 interface ReadAllResults {
   features: GFF3Feature[]

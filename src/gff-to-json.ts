@@ -1,4 +1,4 @@
-import gff from './index'
+import gff from './index.ts'
 let itemBuffer: string | undefined
 
 process.stdout.write('[\n')
