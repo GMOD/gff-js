@@ -1,11 +1,19 @@
 {
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "compilerOptions": {
-    "types": ["node", "jest"],
-    "lib": ["dom", "esnext"],
+    "types": [
+      "node",
+      "jest"
+    ],
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "declaration": true,
-    "moduleResolution": "bundler",
-    "module": "esnext",
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
     "rootDir": "./src",
     "sourceMap": true,
     "strict": true,
