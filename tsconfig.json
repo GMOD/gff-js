@@ -4,8 +4,7 @@
   ],
   "compilerOptions": {
     "types": [
-      "node",
-      "jest"
+      "node"
     ],
     "lib": [
       "dom",

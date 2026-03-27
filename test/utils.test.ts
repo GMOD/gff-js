@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest'
+
 import gff from '../src/index.ts'
 
 import type { GFF3FeatureLine } from '../src/util.ts'
