@@ -718,3 +718,11 @@ Type: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Globa
 ## License
 
 MIT © [Robert Buels](https://github.com/rbuels)
+
+## Publishing
+
+[Trusted publishing](https://docs.npmjs.com/about-trusted-publishing) via GitHub Actions.
+
+```bash
+npm version patch  # or minor/major
+```
