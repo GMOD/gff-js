@@ -29,6 +29,11 @@ Works in the browser and with Node.js v18 and up.
 
 ## Usage
 
+For a remote `.gff3.gz`, query it with
+[@gmod/tabix](https://github.com/GMOD/tabix-js) over a
+[`@gmod/range-cache-filehandle`](https://github.com/GMOD/range-cache-filehandle)
+filehandle, and parse the lines it hands back with `parseStringSync`.
+
 ### Node.js example
 
 ```js
