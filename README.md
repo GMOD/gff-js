@@ -29,10 +29,11 @@ Works in the browser and with Node.js v18 and up.
 
 ## Usage
 
-For a remote `.gff3.gz`, query it with
-[@gmod/tabix](https://github.com/GMOD/tabix-js) over a
+If your GFF3 is a remote `.gff3.gz`, query it with
+[@gmod/tabix](https://github.com/GMOD/tabix-js), reading through a filehandle
+from
 [`@gmod/range-cache-filehandle`](https://github.com/GMOD/range-cache-filehandle)
-filehandle, and parse the lines it hands back with `parseStringSync`.
+so that its byte ranges are cached, and parse the lines it hands back with `parseStringSync`.
 
 ### Node.js example
 
