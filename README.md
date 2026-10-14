@@ -6,7 +6,7 @@ Read and write GFF3 data performantly. This module aims to be a complete
 implementation of the [GFF3
 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md).
 
-**NOTE: this module uses the NPM stream package, which requires node.js polyfills for use on the web. We also created the https://github.com/GMOD/gff-nostream (@gmod/gff-nostream) package to allow faster processing and without need for polyfills**
+**NOTE: this module uses the NPM stream package, which needs node.js polyfills on the web. [@gmod/gff-nostream](https://github.com/GMOD/gff-nostream) parses faster and needs no polyfills.**
 
 - streaming parsing and streaming formatting
 - proper escaping and unescaping of attribute and column values
@@ -29,11 +29,9 @@ Works in the browser and with Node.js v18 and up.
 
 ## Usage
 
-If your GFF3 is a remote `.gff3.gz`, query it with
-[@gmod/tabix](https://github.com/GMOD/tabix-js), reading through a filehandle
-from
-[`@gmod/range-cache-filehandle`](https://github.com/GMOD/range-cache-filehandle)
-so that its byte ranges are cached, and parse the lines tabix returns with `parseStringSync`.
+For a remote `.gff3.gz`, query it with
+[@gmod/tabix](https://github.com/GMOD/tabix-js) and parse the lines it returns
+with `parseStringSync`.
 
 ### Node.js example
 
@@ -133,8 +131,8 @@ import { GFFTransformer } from '@gmod/gff'
 
 ### features
 
-In GFF3, features can have more than one location. We parse features
-as arrayrefs of all the lines that share that feature's ID.
+In GFF3, features can have more than one location, so the parser returns each
+feature as an array of all the lines that share its ID.
 Values that are `.` in the GFF3 are `null` in the output.
 
 A simple feature that's located in just one place:
@@ -377,7 +375,7 @@ Inserts synchronization (###) marks automatically.
 
 ## About `util`
 
-There is also a `util` module that contains super-low-level functions for dealing with lines and parts of lines.
+The `util` module has low-level functions for single lines and their parts.
 
 ```js
 import { util } from '@gmod/gff'
