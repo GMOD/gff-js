@@ -377,7 +377,7 @@ Inserts synchronization (###) marks automatically.
 
 ## About `util`
 
-The package also exports a `util` module of low-level functions for working with lines and parts of lines.
+There is also a `util` module that contains super-low-level functions for dealing with lines and parts of lines.
 
 ```js
 import { util } from '@gmod/gff'
