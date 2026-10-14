@@ -115,7 +115,7 @@ import { GFFTransformer } from '@gmod/gff'
       new GFFTransformer({ parseComments: true, parseDirectives: true }),
     ),
   )
-  for await (const chunk of streamOfGFF3) {
+  for await (const data of streamOfGFF3) {
     if ('directive' in data) {
       console.log('got a directive', data)
     } else if ('comment' in data) {
