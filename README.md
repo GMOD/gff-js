@@ -33,7 +33,7 @@ If your GFF3 is a remote `.gff3.gz`, query it with
 [@gmod/tabix](https://github.com/GMOD/tabix-js), reading through a filehandle
 from
 [`@gmod/range-cache-filehandle`](https://github.com/GMOD/range-cache-filehandle)
-so that its byte ranges are cached, and parse the lines it hands back with `parseStringSync`.
+so that its byte ranges are cached, and parse the lines tabix returns with `parseStringSync`.
 
 ### Node.js example
 
@@ -234,7 +234,7 @@ parseComment('# hi this is a comment\n')
 
 ### sequences
 
-These come from any embedded `##FASTA` section in the GFF3 file.
+Sequences come from any embedded `##FASTA` section in the GFF3 file.
 
 ```js
 parseSequences(`##FASTA
@@ -377,7 +377,7 @@ Inserts synchronization (###) marks automatically.
 
 ## About `util`
 
-There is also a `util` module that contains super-low-level functions for dealing with lines and parts of lines.
+The package also exports a `util` module of low-level functions for working with lines and parts of lines.
 
 ```js
 import { util } from '@gmod/gff'
